@@ -16,19 +16,19 @@ client = IndexifyClient()
 from indexify.client import Document
 
 client.bind_extractor(
-    "diptanu/minilm-l6-extractor",
-    "minilm",
+    "openai-embedding-ada-002-extractor",
+    "openai-embedding",
 )
 
 client.add_documents(
     [
         Document(
             text="Indexify is amazing!",
-            metadata={"url": "https://github.com/tensorlakeai/indexify"},
+            labels={"source": "indexify-example"},
         ),
         Document(
             text="Indexify is also a retrieval service for LLM agents!",
-            metadata={"url": "https://github.com/tensorlakeai/indexify"},
+            labels={"source": "indexify-example"},
         )
     ]
 )
@@ -37,7 +37,7 @@ client.add_documents(
 # implement retriever from indexify repo
 from retriever import IndexifyRetriever
 
-params = {"namespace": "default", "name": "minilm-embedding", "top_k": 3}
+params = {"name": "minilm-embedding", "top_k": 3}
 retriever = IndexifyRetriever(client=client, params=params)
 
 docs = retriever.get_relevant_documents("indexify")
