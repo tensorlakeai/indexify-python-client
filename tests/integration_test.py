@@ -1,4 +1,5 @@
 from indexify.client import IndexifyClient, Document, ExtractorBinding
+from langchain.text_splitter import CharacterTextSplitter
 import time
 import os
 import unittest
@@ -192,6 +193,56 @@ class TestIntegrationTest(unittest.TestCase):
         test_file_path = os.path.join(os.path.dirname(__file__), "files", "test.txt")
         self.client.upload_file(test_file_path)
 
+    def test_langchain_retriever(self):
+        # import langchain retriever
+        import sys
+        retriever_path = os.path.join(os.path.dirname(__file__),'../langchain/indexify_langchain')
+        sys.path.append(retriever_path)
+        from retriever import IndexifyRetriever
+        
+        # init client
+        client = IndexifyClient.create_namespace("test-langchain")
+        client.bind_extractor(
+            "tensorlake/minilm-l6",
+            "minilml6",
+        )
 
-if __name__ == "__main__":
-    unittest.main()
+        # Add Documents
+        client.add_documents("Lucas is from Atlanta Georgia")
+        time.sleep(5)
+
+        # Initialize retriever
+        params = {"name": "minilml6.embedding", "top_k": 9}
+        retriever = IndexifyRetriever(client=client, params=params)
+
+        # Setup Chat Prompt Template
+        from langchain.prompts import ChatPromptTemplate
+
+        template = """You are an assistant for question-answering tasks. 
+        Use the following pieces of retrieved context to answer the question. 
+        If you don't know the answer, just say that you don't know. 
+        Use three sentences maximum and keep the answer concise.
+        Question: {question} 
+        Context: {context} 
+        Answer:
+        """
+        prompt = ChatPromptTemplate.from_template(template)
+
+        # Ask llm question with retriever context
+        from langchain_openai import ChatOpenAI
+        from langchain.schema.runnable import RunnablePassthrough
+        from langchain.schema.output_parser import StrOutputParser
+
+        llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0)
+
+        rag_chain = (
+            {"context": retriever, "question": RunnablePassthrough()}
+            | prompt
+            | llm
+            | StrOutputParser()
+        )
+
+
+        query = "Where is Lucas from?"
+        assert "Atlanta" in rag_chain.invoke(query)
+

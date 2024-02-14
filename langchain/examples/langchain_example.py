@@ -1,4 +1,4 @@
-from langchain.document_loaders import TextLoader
+from langchain_community.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 import requests
 import dotenv
@@ -32,7 +32,7 @@ client = IndexifyClient()
 # Bind openai embedding extractor
 client.bind_extractor(
     "openai-embedding-ada-002-extractor",
-    "state_of_the_union",
+    "openai",
     labels_eq="source:state_of_the_union",
 )
 
@@ -40,16 +40,15 @@ client.bind_extractor(
 # Add Documents to repository
 import time
 
-docs = [Document(doc.page_content, {"source":"./state_of_the_union.txt"}) for doc in chunks]
+docs = [Document(doc.page_content, {"source":"state_of_the_union"}) for doc in chunks]
 client.add_documents(docs)
 time.sleep(10)
 
 # Setup indexify langchain retriever
 from retriever import IndexifyRetriever
 
-params = {"name": "state_of_the_union.embedding", "top_k": 9}
+params = {"name": "openai.embedding", "top_k": 9}
 retriever = IndexifyRetriever(client=client, params=params)
-
 
 # Setup Chat Prompt Template
 from langchain.prompts import ChatPromptTemplate
@@ -66,7 +65,7 @@ prompt = ChatPromptTemplate.from_template(template)
 
 
 # Ask llm question with retriever context
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.schema.runnable import RunnablePassthrough
 from langchain.schema.output_parser import StrOutputParser
 
