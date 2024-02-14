@@ -16,9 +16,17 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: "3.9"
-      - name: Install pypa/build
-        run: python3 -m pip install poetry --user && python3 -m poetry build
-      - name: Publish to PyPI
+      - name: Install Poetry
+        run: python3 -m pip install poetry --user
+      - name: Build Indexify Client
+        run: python3 -m poetry build
+      - name: Publish Indexify Client to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+      - name: Build Indexify Langchain
+        run: python3 -m poetry build --directory=langchain
+      - name: Publish Indexify Langchain to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: langchain/dist/
