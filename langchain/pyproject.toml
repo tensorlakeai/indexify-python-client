@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "indexify_langchain"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10.0"
 indexify= "^0"
 langchain= "^0"
 
