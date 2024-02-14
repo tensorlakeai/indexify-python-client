@@ -18,14 +18,12 @@ jobs:
           python-version: "3.9"
       - name: Install Poetry
         run: python3 -m pip install poetry --user
-      - name: Build Indexify Client
-        run: python3 -m poetry build
+      - name: Build Packages
+        run: python3 -m poetry build && python3 -m poetry build --directory=langchain
       - name: Publish Indexify Client to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
-      - name: Build Indexify Langchain
-        run: python3 -m poetry build --directory=langchain
       - name: Publish Indexify Langchain to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
