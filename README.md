@@ -1,5 +1,8 @@
 # Indexify Python Client
 
+
+[![PyPI version](https://badge.fury.io/py/indexify.svg)](https://badge.fury.io/py/indexify)
+
 ## Installation
 
 This is the Python client for interacting with the Indexify service.
