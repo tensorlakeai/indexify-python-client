@@ -209,7 +209,7 @@ class TestIntegrationTest(unittest.TestCase):
 
         # Add Documents
         client.add_documents("Lucas is from Atlanta Georgia")
-        time.sleep(5)
+        time.sleep(10)
 
         # Initialize retriever
         params = {"name": "minilml6.embedding", "top_k": 9}
