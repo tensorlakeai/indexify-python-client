@@ -45,7 +45,7 @@ client.add_documents(docs)
 time.sleep(10)
 
 # Setup indexify langchain retriever
-from retriever import IndexifyRetriever
+from indexify_langchain import IndexifyRetriever
 
 params = {"name": "openai.embedding", "top_k": 9}
 retriever = IndexifyRetriever(client=client, params=params)

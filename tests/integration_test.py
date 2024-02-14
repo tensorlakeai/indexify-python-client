@@ -195,10 +195,7 @@ class TestIntegrationTest(unittest.TestCase):
 
     def test_langchain_retriever(self):
         # import langchain retriever
-        import sys
-        retriever_path = os.path.join(os.path.dirname(__file__),'../langchain/indexify_langchain')
-        sys.path.append(retriever_path)
-        from retriever import IndexifyRetriever
+        from indexify_langchain import IndexifyRetriever
         
         # init client
         client = IndexifyClient.create_namespace("test-langchain")

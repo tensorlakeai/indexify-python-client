@@ -1,4 +1,4 @@
-from indexify_langchain.retriever import IndexifyRetriever
+from indexify_langchain import IndexifyRetriever
 
 # init client
 client = IndexifyClient.create_namespace("test-langchain")
