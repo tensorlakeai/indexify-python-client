@@ -15,8 +15,6 @@ httpcore==1.0.3
 httpx==0.26.0
 hyperframe==6.0.1
 idna==3.6
-indexify==0.0.7
-indexify-langchain==0.0.7
 iniconfig==2.0.0
 jsonpatch==1.33
 jsonpointer==2.4

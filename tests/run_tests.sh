@@ -18,8 +18,6 @@ done
 pytest integration_test.py::TestIntegrationTest
 pytest_exit_status=$?
 
-docker-compose logs
-
 docker-compose down
 
 exit $pytest_exit_status
