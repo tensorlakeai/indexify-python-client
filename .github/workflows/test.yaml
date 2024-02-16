@@ -17,7 +17,7 @@ jobs:
       with:
         python-version: 3.11
     - name: Install python dependencies
-      run: pip install pytest indexify indexify_langchain langchain_openai langchain
+      run: cd tests && pip install -r requirements.txt
     - name: Run Tests
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
