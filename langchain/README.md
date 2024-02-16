@@ -1,12 +1,10 @@
 # Indexify Langchain
 
-This package offers a LangChain Retriever component, which leverages advanced language models to fetch data with in langchain. In order to use this retriever you must have Indexify, to read more about getting started with indexify you can read our [getting started documentation here](https://getindexify.ai/getting_started/).
+This package contains our LangChain Retriever component, which leverages advanced language models to fetch data within langchain. In order to use this retriever you must have Indexify, to read more about getting started with indexify you can read our [getting started documentation here](https://getindexify.ai/getting_started/).
 
 ### Requirements
 - [Indexify](https://getindexify.ai/getting_started/)
 - [Indexify Python Client](https://pypi.org/project/indexify/)
-
-You can use our LangChain retriever from our repo located in `indexify_langchain/retriever.py` to begin retrieving your data.
 
 ### Indexify Retriever RAG Example
 Below is an example on how you can use our indexify langchain retriever with OpenAI.
