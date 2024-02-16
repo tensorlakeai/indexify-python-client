@@ -1,5 +1,7 @@
 # Indexify Langchain
 
+[![PyPI version](https://badge.fury.io/py/indexify-langchain.svg)](https://badge.fury.io/py/indexify-langchain)
+
 This package contains our LangChain Retriever component, which leverages LLMs to fetch data with langchain. In order to use this retriever you must have Indexify, to read more about getting started with indexify you can read our [getting started documentation](https://getindexify.ai/getting_started/).
 
 ### Requirements
