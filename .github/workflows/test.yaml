@@ -31,8 +31,9 @@ jobs:
     steps:
       - name: Echo Extracted Version
         run: echo "Extracted Version is ${{ needs.extract-version.outputs.version }}"
-        
+
   test:
+    name: Test get version number
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
