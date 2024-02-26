@@ -1,48 +1,84 @@
 name: Publish to PyPI
 
-on: workflow_dispatch
+# on: workflow_dispatch
+on:
+  pull_request:
+    branches:
+      - "main"
+
+permissions:
+  contents: write
 
 jobs:
-  publish-indexify-to-pypi:
-    name: Publish Indexify Python Client
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/indexify
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
-      - name: Install Poetry
-        run: python3 -m pip install poetry --user
-      - name: Build Packages
-        run: python3 -m poetry build
-      - name: Publish Indexify Client to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist/
+  # publish-indexify-to-pypi:
+  #   name: Publish Indexify Python Client
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/p/indexify
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v4
+  #       with:
+  #         python-version: "3.9"
+  #     - name: Install Poetry
+  #       run: python3 -m pip install poetry --user
+  #     - name: Build Packages
+  #       run: python3 -m poetry build
+  #     - name: Publish Indexify Client to PyPI
+  #       uses: pypa/gh-action-pypi-publish@release/v1
+  #       with:
+  #         packages-dir: dist/
 
-  publish-indexify-langchain-to-pypi:
-    name: Publish Indexify Langchain
+  # publish-indexify-langchain-to-pypi:
+  #   name: Publish Indexify Langchain
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: pypi
+  #     url: https://pypi.org/p/indexify-langchain
+  #   permissions:
+  #     id-token: write
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v4
+  #       with:
+  #         python-version: "3.9"
+  #     - name: Install Poetry
+  #       run: python3 -m pip install poetry --user
+  #     - name: Build Packages
+  #       run: cd langchain && python3 -m poetry build
+  #     - name: Publish Indexify Langchain to PyPI
+  #       uses: pypa/gh-action-pypi-publish@release/v1
+  #       with:
+  #         packages-dir: langchain/dist/
+
+  # extract-version:
+  #   name: Extract Version
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-python@v4
+  #       with:
+  #         python-version: "3.9"
+  #     - name: Get Version
+  #       run: |
+  #         VERSION=$(python -c "import toml; print(toml.load('pyproject.toml')['tool']['poetry']['version'])")
+  #         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+  #         echo "::set-output name=version::$VERSION"
+      
+
+  create-release:
+    name: Create GitHub Release
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/indexify-langchain
-    permissions:
-      id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
         with:
-          python-version: "3.9"
-      - name: Install Poetry
-        run: python3 -m pip install poetry --user
-      - name: Build Packages
-        run: cd langchain && python3 -m poetry build
-      - name: Publish Indexify Langchain to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: langchain/dist/
+          tag_name: "v${{ needs.extract-version.outputs.version }}"
+          prerelease: ${{ github.event.inputs.prerelease }}
+          body: ${{ github.event.inputs.release_message }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
