@@ -21,7 +21,7 @@ jobs:
       - name: Install toml
         run: pip install toml
       - id: version_extraction
-        run: echo "version=$(python -c 'import toml; print(toml.load(\"pyproject.toml\")[\"tool\"][\"poetry\"][\"version\"])')" >> $GITHUB_OUTPUT
+        run: echo "version=$(python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')" >> $GITHUB_OUTPUT
   
   test-get-version:
     name: Get Version Number
