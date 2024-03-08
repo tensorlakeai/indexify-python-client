@@ -214,6 +214,15 @@ class IndexifyClient:
         client.post(f"namespaces", json=req)
         return client
 
+    def _add_content_url(self, content):
+        """
+        Add download content_url url property
+        """
+        return {
+            **content,
+            "content_url": f"{self._service_url}/namespaces/{self.namespace}/content/{content['id']}/download",
+        }
+
     def indexes(self) -> List[Index]:
         """
         Get the indexes of the current namespace.
@@ -322,7 +331,24 @@ class IndexifyClient:
 
         response = self.get(f"namespaces/{self.namespace}/content", params=params)
         response.raise_for_status()
-        return response.json()["content_list"]
+        return [
+            self._add_content_url(content)
+            for content in response.json()["content_list"]
+        ]
+    
+    def download_content(self, id:str) -> bytes:
+        """
+        Download content from id. Return bytes
+        
+        Args:
+            - id (str): id of content to download
+        """
+        response = self.get(f"namespaces/{self.namespace}/content/{id}/download")
+        try:
+            response.raise_for_status()
+            return response.content
+        except httpx.HTTPStatusError as exc:
+            raise ApiException(exc.response.text)
 
     def add_documents(
         self, documents: Union[Document, str, List[Union[Document, str]]]

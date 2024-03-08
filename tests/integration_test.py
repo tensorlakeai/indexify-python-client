@@ -89,6 +89,10 @@ class TestIntegrationTest(unittest.TestCase):
         )
         content = client.get_content()
         assert len(content) == 3
+        # validate content_url
+        for c in content:
+            assert content.get("content_url") is not None
+            print('got em', content.get("content_url"))
 
         # parent doesn't exist
         content = client.get_content(parent_id="idontexist")
@@ -97,6 +101,18 @@ class TestIntegrationTest(unittest.TestCase):
         # filter label
         content = client.get_content(labels_eq="l1:test")
         assert len(content) == 1
+
+    def test_download_content(self):
+        namespace_name = "test.downloadcontent"
+        client = IndexifyClient.create_namespace(namespace=namespace_name)
+        client.add_documents(
+            ["test download"]
+        )
+        content = client.get_content()
+        assert len(content) == 1
+
+        data = client.download_content(content[0].get('id'))
+        assert data.decode("utf-8") == "test download"
 
     def test_search(self):
         namespace_name = "test.search2"
