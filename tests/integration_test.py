@@ -91,8 +91,7 @@ class TestIntegrationTest(unittest.TestCase):
         assert len(content) == 3
         # validate content_url
         for c in content:
-            assert content.get("content_url") is not None
-            print('got em', content.get("content_url"))
+            assert c.get("content_url") is not None
 
         # parent doesn't exist
         content = client.get_content(parent_id="idontexist")
