@@ -198,6 +198,7 @@ class IndexifyClient:
         namespace: str,
         extraction_policies: list = [],
         labels: dict = {},
+        service_url: str = DEFAULT_SERVICE_URL
     ) -> "IndexifyClient":
         """
         Create a new namespace.
@@ -211,14 +212,17 @@ class IndexifyClient:
                 extraction_policies.append(bd.to_dict())
             else:
                 extraction_policies.append(bd)
+
         req = {
             "name": namespace,
             "extraction_policies": extraction_policies,
             "labels": labels,
         }
 
+        with httpx.Client() as client:
+            client.post(f"{service_url}/namespaces", json=req)
+
         client = IndexifyClient(namespace=namespace)
-        client.post(f"namespaces", json=req)
         return client
 
     def _add_content_url(self, content):
