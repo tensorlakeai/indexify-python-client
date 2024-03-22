@@ -222,7 +222,7 @@ class IndexifyClient:
         with httpx.Client() as client:
             client.post(f"{service_url}/namespaces", json=req)
 
-        client = IndexifyClient(namespace=namespace)
+        client = IndexifyClient(namespace=namespace, service_url=service_url)
         return client
 
     def _add_content_url(self, content):
