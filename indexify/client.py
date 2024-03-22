@@ -399,18 +399,16 @@ class IndexifyClient:
         )
         response.raise_for_status()
 
-    def query_metadata(self, index_name: str, content_id: str) -> dict:
+    def get_metadata(self, content_id: str) -> dict:
         """
         Query metadata for a specific content ID in a given index.
 
         Args:
-            - index_name (str): index to query
             - content_id (str): content id to query
         """
-        params = {"index": index_name, "content_id": content_id}
-        response = self.get(f"namespaces/{self.namespace}/metadata", params=params)
+        response = self.get(f"namespaces/{self.namespace}/content/{content_id}/metadata")
         response.raise_for_status()
-        return response.json()["attributes"]
+        return response.json().get("metadata",[])
 
     def search_index(self, name: str, query: str, top_k: int) -> list[TextChunk]:
         """
