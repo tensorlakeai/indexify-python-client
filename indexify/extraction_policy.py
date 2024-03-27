@@ -8,6 +8,7 @@ class ExtractionPolicy:
     name: str
     content_source: str
     input_params: dict
+    id: Optional[str] = None
     labels_eq: Optional[str] = None
 
     def __repr__(self) -> str:
