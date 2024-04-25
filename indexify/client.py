@@ -538,7 +538,18 @@ class IndexifyClient:
         response = self.get(f"namespaces/{self.namespace}/schemas")
         response.raise_for_status()
         return response.json()
+    
+    def get_content_tree(self, content_id:str):
+        """
+        Get content tree for a given content id
 
+        Args:
+            - content_id (str): id of content
+        """
+        response = self.get(f"namespaces/{self.namespace}/content/{content_id}/content-tree")
+        response.raise_for_status()
+        return response.json()
+    
     def sql_query(self, query: str):
         """
         Execute a SQL query.
