@@ -128,7 +128,7 @@ class IndexifyClient:
         return client
 
     def _request(self, method: str, **kwargs) -> httpx.Response:
-        response = self._client.request(method, **kwargs)
+        response = self._client.request(method,timeout=None, **kwargs)
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as exc:
@@ -475,7 +475,7 @@ class IndexifyClient:
             - path (str): relative path to the file to be uploaded
         """
         with open(path, "rb") as f:
-            response = self.put(f"namespaces/{self.namespace}/content/{document_id}", files={"file": f}, timeout=None)
+            response = self.put(f"namespaces/{self.namespace}/content/{document_id}", files={"file": f})
             response.raise_for_status()
 
     def get_structured_data(self, content_id: str) -> dict:
@@ -525,7 +525,6 @@ class IndexifyClient:
                 files={"file": f},
                 data=labels,
                 params=params,
-                timeout=None,
             )
             response.raise_for_status()
             response_json = response.json()
