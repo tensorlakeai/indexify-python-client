@@ -4,9 +4,11 @@ import uuid
 import hashlib
 import json
 from collections import namedtuple
+
+from indexify.extraction_graph import ExtractionGraphRequest
 from .settings import DEFAULT_SERVICE_URL
 from .extractor import Extractor
-from .extraction_policy import ExtractionPolicy
+from .extraction_policy import ExtractionPolicy, ExtractionPolicyRequest
 from .index import Index
 from .utils import json_set_default
 from .data_containers import TextChunk
@@ -317,6 +319,23 @@ class IndexifyClient:
         for eb in response.json()["namespace"]["extraction_policies"]:
             self.extraction_policies.append(ExtractionPolicy.from_dict(eb))
         return self.extraction_policies
+    
+    def add_extraction_graph(self, extraction_graph: ExtractionGraphRequest):
+        """
+        Create an extraction graph
+
+        Args:
+            - extraction_graph (ExtractionGraphRequest): ExtractionGraphRequest object
+        """
+        request_body = json.dumps(extraction_graph.__dict__, default=json_set_default)
+        print(f"req {request_body}")
+        response = self.post(
+            f"namespaces/{self.namespace}/extraction_graph",
+            data=request_body,
+            headers={"Content-Type": "application/json"},
+        )
+        response.raise_for_status()
+        return response.json()
 
     def add_extraction_policy(
         self,
@@ -415,13 +434,18 @@ class IndexifyClient:
             raise ApiException(exc.response.text)
 
     def add_documents(
-        self, documents: Union[Document, str, List[Union[Document, str]]], doc_id=None
+        self,
+        documents: Union[Document, str, List[Union[Document, str]]],
+        extraction_graph_names: Optional[List[str]] = None,
+        doc_id: Optional[str] = None,
     ) -> None:
         """
         Add documents to current namespace.
 
         Args:
-            - documents (Union[Document, str, List[Union[Document, str]]]): this can be a list of strings, list of Documents or a mix of both
+            - documents (Union[Document, str, List[Union[Document, str]]]): This can be a list of strings, list of Documents, or a mix of both.
+            - extraction_graph_names (Optional[List[str]]): List of extraction graph names that the data can run through.
+            - doc_id (Optional[str]): Document ID for a single document.
         """
         if isinstance(documents, Document):
             documents = [documents]
@@ -433,7 +457,7 @@ class IndexifyClient:
                 if isinstance(item, Document):
                     new_documents.append(item)
                 elif isinstance(item, str):
-                    new_documents.append(Document(item, {}, id=None)) # don't pass in id for a string content because doesn't make sense to have same content id for all strings
+                    new_documents.append(Document(item, {}, id=None))  # Don't pass in ID for a string content because it doesn't make sense to have the same content ID for all strings.
                 else:
                     raise ValueError(
                         "List items must be either Document instances or strings."
@@ -444,7 +468,10 @@ class IndexifyClient:
                 "Invalid type for documents. Expected Document, str, or list of these."
             )
 
-        req = {"documents": [doc._asdict() for doc in documents]}
+        req = {
+            "documents": [doc._asdict() for doc in documents],
+            "extraction_graph_names": extraction_graph_names or [],
+        }
         response = self.post(
             f"namespaces/{self.namespace}/add_texts",
             json=req,

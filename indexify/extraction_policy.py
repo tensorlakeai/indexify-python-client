@@ -1,6 +1,14 @@
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Optional
 
+
+@dataclass
+class ExtractionPolicyRequest:
+    extractor: str
+    name: str
+    content_source: str
+    input_params: dict = field(default=None)
+    labels_eq: Optional[str] = None
 
 @dataclass
 class ExtractionPolicy:
@@ -8,6 +16,7 @@ class ExtractionPolicy:
     name: str
     content_source: str
     input_params: dict
+    graph_name: str
     id: Optional[str] = None
     labels_eq: Optional[str] = None
 
