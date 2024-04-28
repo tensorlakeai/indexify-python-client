@@ -535,17 +535,25 @@ class IndexifyClient:
         response.raise_for_status()
         return response.json()["results"]
 
-    def upload_file(self, path: str, id=None, labels: dict = {}) -> str:
+    def upload_file(self, path: str, id: str = None, labels: dict = {}, extraction_graph_names = []) -> str:
         """
         Upload a file.
 
         Args:
             - path (str): relative path to the file to be uploaded
+            - id (Optional[str]): ID to be associated with the file (default: None)
             - labels (dict): labels to be associated with the file
+            - extraction_graph_names (List[str]): list of extraction graph names to run the file through (default: [])
         """
         params={}
         if id is not None:
             params['id'] = id
+
+        if extraction_graph_names:
+            params['extraction_graph_names'] = extraction_graph_names
+        else:
+            raise ValueError("Extraction graph names are required")
+
         with open(path, "rb") as f:
             response = self.post(
                 f"namespaces/{self.namespace}/upload_file",

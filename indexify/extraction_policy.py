@@ -1,5 +1,5 @@
 from dataclasses import dataclass, asdict, field
-from typing import Optional
+from typing import Optional, Dict
 
 
 @dataclass
@@ -7,7 +7,7 @@ class ExtractionPolicyRequest:
     extractor: str
     name: str
     content_source: str
-    input_params: dict = field(default=None)
+    input_params: Dict = field(default_factory=dict)
     labels_eq: Optional[str] = None
 
 @dataclass

@@ -7,5 +7,5 @@ from indexify.extraction_policy import ExtractionPolicyRequest
 @dataclass
 class ExtractionGraphRequest:
   name: str
-  namespace: str
   policies: List[ExtractionPolicyRequest]
+  namespace: str="default"
