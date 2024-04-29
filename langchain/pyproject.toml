@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "indexify-langchain"
-version = "0.0.17"
+version = "0.0.19"
 description = ""
 authors = ["Lucas Jackson <lucas@tensorlake.ai>", "Diptanu Choudhury <diptanuc@gmail.com>"]
 readme = "README.md"
