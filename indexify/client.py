@@ -570,8 +570,8 @@ class IndexifyClient:
             rows.append(data)
         return SqlQueryResult(result=rows)
     
-    def ingest_remote_file(self, url: str, mime_type: str, labels: Dict[str, str]):
-        req = {"url": url, "mime_type": mime_type, "labels": labels}
+    def ingest_remote_file(self, url: str, mime_type: str, labels: Dict[str, str], id=None):
+        req = {"url": url, "mime_type": mime_type, "labels": labels, "id": id}
         response = self.post(
             f"namespaces/{self.namespace}/ingest_remote_file",
             json=req,

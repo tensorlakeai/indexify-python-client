@@ -219,6 +219,12 @@ class TestIntegrationTest(unittest.TestCase):
         test_file_path = os.path.join(os.path.dirname(__file__), "files", "test.txt")
         self.client.upload_file(test_file_path)
 
+    def test_ingest_remote_url(self):
+        url = "https://gif-search.diptanu-6d5.workers.dev/OlG-5EjOENZLvlxHcXXmT.gif"
+        content_id = self.client.generate_hash_from_string(url)
+        res = self.client.ingest_remote_file(url, "image/gif", {}, id=content_id)
+        assert res.get("content_id") == content_id
+
     # def test_langchain_retriever(self):
     #     # import langchain retriever
     #     from indexify_langchain import IndexifyRetriever
