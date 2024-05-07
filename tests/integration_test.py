@@ -114,7 +114,7 @@ class TestIntegrationTest(unittest.TestCase):
         assert data.decode("utf-8") == "test download"
 
     def test_search(self):
-        namespace_name = "test.search2"
+        namespace_name = self.generate_short_id()
         extractor_name = self.generate_short_id()
 
         client = IndexifyClient.create_namespace(namespace_name)
