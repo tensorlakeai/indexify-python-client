@@ -19,6 +19,7 @@ Document = namedtuple("Document", ["text", "labels", "id"])
 
 SQLQueryRow = namedtuple("SQLQueryRow", ["content_id", "data"])
 
+
 @dataclass
 class SqlQueryResult:
     result: List[Dict]
@@ -45,22 +46,22 @@ class IndexifyClient:
 
     def __init__(
         self,
-        service_url: str = DEFAULT_SERVICE_URL, # switch this to DEFAULT_SERVICE_URL_HTTPS for TLS
+        service_url: str = DEFAULT_SERVICE_URL,  # switch this to DEFAULT_SERVICE_URL_HTTPS for TLS
         namespace: str = "default",
         config_path: Optional[str] = None,
         *args,
         **kwargs,
     ):
         if config_path:
-            with open(config_path, 'r') as file:
+            with open(config_path, "r") as file:
                 config = yaml.safe_load(file)
-                
-            if config.get('use_tls', False):
-                tls_config = config['tls_config']
+
+            if config.get("use_tls", False):
+                tls_config = config["tls_config"]
                 self._client = httpx.Client(
                     http2=True,
-                    cert=(tls_config['cert_path'], tls_config['key_path']),
-                    verify=tls_config.get('ca_bundle_path', True)
+                    cert=(tls_config["cert_path"], tls_config["key_path"]),
+                    verify=tls_config.get("ca_bundle_path", True),
                 )
             else:
                 self._client = httpx.Client(*args, **kwargs)
@@ -71,6 +72,7 @@ class IndexifyClient:
         self.extraction_policies: List[ExtractionPolicy] = []
         self.labels: dict = {}
         self._service_url = service_url
+        self._timeout = kwargs.get("timeout")
 
         # get namespace data
         response = self.get(f"namespaces/{self.namespace}")
@@ -128,7 +130,7 @@ class IndexifyClient:
         return client
 
     def _request(self, method: str, **kwargs) -> httpx.Response:
-        response = self._client.request(method,timeout=None, **kwargs)
+        response = self._client.request(method, timeout=self._timeout, **kwargs)
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as exc:
@@ -188,7 +190,7 @@ class IndexifyClient:
         ```
         """
         return self._request("PUT", url=f"{self._service_url}/{endpoint}", **kwargs)
-    
+
     def delete(self, endpoint: str, **kwargs) -> httpx.Response:
         """
         Make a DELETE request to the Indexify service.
@@ -245,7 +247,7 @@ class IndexifyClient:
         namespace: str,
         extraction_policies: list = [],
         labels: dict = {},
-        service_url: str = DEFAULT_SERVICE_URL
+        service_url: str = DEFAULT_SERVICE_URL,
     ) -> "IndexifyClient":
         """
         Create a new namespace.
@@ -368,7 +370,7 @@ class IndexifyClient:
         except httpx.HTTPStatusError as exc:
             raise ApiException(exc.response.text)
         return
-    
+
     def get_content_metadata(self, content_id: str) -> dict:
         """
         Get metadata for a specific content ID in a given index.
@@ -399,11 +401,11 @@ class IndexifyClient:
             self._add_content_url(content)
             for content in response.json()["content_list"]
         ]
-    
-    def download_content(self, id:str) -> bytes:
+
+    def download_content(self, id: str) -> bytes:
         """
         Download content from id. Return bytes
-        
+
         Args:
             - id (str): id of content to download
         """
@@ -433,7 +435,9 @@ class IndexifyClient:
                 if isinstance(item, Document):
                     new_documents.append(item)
                 elif isinstance(item, str):
-                    new_documents.append(Document(item, {}, id=None)) # don't pass in id for a string content because doesn't make sense to have same content id for all strings
+                    new_documents.append(
+                        Document(item, {}, id=None)
+                    )  # don't pass in id for a string content because doesn't make sense to have same content id for all strings
                 else:
                     raise ValueError(
                         "List items must be either Document instances or strings."
@@ -475,7 +479,9 @@ class IndexifyClient:
             - path (str): relative path to the file to be uploaded
         """
         with open(path, "rb") as f:
-            response = self.put(f"namespaces/{self.namespace}/content/{document_id}", files={"file": f})
+            response = self.put(
+                f"namespaces/{self.namespace}/content/{document_id}", files={"file": f}
+            )
             response.raise_for_status()
 
     def get_structured_data(self, content_id: str) -> dict:
@@ -485,11 +491,15 @@ class IndexifyClient:
         Args:
             - content_id (str): content id to query
         """
-        response = self.get(f"namespaces/{self.namespace}/content/{content_id}/metadata")
+        response = self.get(
+            f"namespaces/{self.namespace}/content/{content_id}/metadata"
+        )
         response.raise_for_status()
-        return response.json().get("metadata",[])
+        return response.json().get("metadata", [])
 
-    def search_index(self, name: str, query: str, top_k: int, filters: List[str] = []) -> list[TextChunk]:
+    def search_index(
+        self, name: str, query: str, top_k: int, filters: List[str] = []
+    ) -> list[TextChunk]:
         """
         Search index in the current namespace.
 
@@ -516,9 +526,9 @@ class IndexifyClient:
             - path (str): relative path to the file to be uploaded
             - labels (dict): labels to be associated with the file
         """
-        params={}
+        params = {}
         if id is not None:
-            params['id'] = id
+            params["id"] = id
         with open(path, "rb") as f:
             response = self.post(
                 f"namespaces/{self.namespace}/upload_file",
@@ -537,18 +547,20 @@ class IndexifyClient:
         response = self.get(f"namespaces/{self.namespace}/schemas")
         response.raise_for_status()
         return response.json()
-    
-    def get_content_tree(self, content_id:str):
+
+    def get_content_tree(self, content_id: str):
         """
         Get content tree for a given content id
 
         Args:
             - content_id (str): id of content
         """
-        response = self.get(f"namespaces/{self.namespace}/content/{content_id}/content-tree")
+        response = self.get(
+            f"namespaces/{self.namespace}/content/{content_id}/content-tree"
+        )
         response.raise_for_status()
         return response.json()
-    
+
     def sql_query(self, query: str):
         """
         Execute a SQL query.
@@ -569,8 +581,10 @@ class IndexifyClient:
             data = row["data"]
             rows.append(data)
         return SqlQueryResult(result=rows)
-    
-    def ingest_remote_file(self, url: str, mime_type: str, labels: Dict[str, str], id=None):
+
+    def ingest_remote_file(
+        self, url: str, mime_type: str, labels: Dict[str, str], id=None
+    ):
         req = {"url": url, "mime_type": mime_type, "labels": labels, "id": id}
         response = self.post(
             f"namespaces/{self.namespace}/ingest_remote_file",
@@ -579,7 +593,7 @@ class IndexifyClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     def generate_unique_hex_id(self):
         """
         Generate a unique hexadecimal identifier
@@ -588,18 +602,16 @@ class IndexifyClient:
             str: a unique hexadecimal string
         """
         return uuid.uuid4().hex[:16]
-    
+
     def generate_hash_from_string(self, input_string: str):
         """
         Generate a hash for the given string and return it as a hexadecimal string.
-        
+
         Args:
             input_string (str): The input string to hash.
-        
+
         Returns:
             str: The hexadecimal hash of the input string.
         """
         hash_object = hashlib.sha256(input_string.encode())
         return hash_object.hexdigest()[:16]
-
-

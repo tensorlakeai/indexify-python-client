@@ -4,7 +4,7 @@ import time
 import os
 import unittest
 import uuid
-
+from httpx import ConnectError
 
 class TestIntegrationTest(unittest.TestCase):
     """
@@ -224,6 +224,21 @@ class TestIntegrationTest(unittest.TestCase):
         content_id = self.client.generate_hash_from_string(url)
         res = self.client.ingest_remote_file(url, "image/gif", {}, id=content_id)
         assert res.get("content_id") == content_id
+    
+    def test_timeout(self):
+        with self.assertRaises(ConnectError):
+            IndexifyClient(timeout=0)
+
+        try:
+            IndexifyClient(timeout=None)
+        except Exception as e:
+            self.fail(f"IndexifyClient raised an exception with timeout=None: {e}")
+
+        try:
+            IndexifyClient()
+        except Exception as e:
+            self.fail(f"IndexifyClient raised an exception with default timeout: {e}")
+
 
     # def test_langchain_retriever(self):
     #     # import langchain retriever
