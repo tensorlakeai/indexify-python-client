@@ -493,7 +493,7 @@ class IndexifyClient:
         response.raise_for_status()
         return response.json()["results"]
 
-    def upload_file(self, path: str, id=None, labels: dict = {}) -> str:
+    def upload_file(self, extraction_graphs: Union[str, List[str]], path: str, id=None, labels: dict = {}) -> str:
         """
         Upload a file.
 
@@ -501,7 +501,9 @@ class IndexifyClient:
             - path (str): relative path to the file to be uploaded
             - labels (dict): labels to be associated with the file
         """
-        params = {}
+        if isinstance(extraction_graphs, str):
+            extraction_graphs = [extraction_graphs]
+        params = {"extraction_graph_names": extraction_graphs}
         if id is not None:
             params["id"] = id
         with open(path, "rb") as f:
@@ -558,9 +560,11 @@ class IndexifyClient:
         return SqlQueryResult(result=rows)
 
     def ingest_remote_file(
-        self, url: str, mime_type: str, labels: Dict[str, str], id=None
+        self, extraction_graphs: Union[str, List[str]], url: str, mime_type: str, labels: Dict[str, str], id=None
     ):
-        req = {"url": url, "mime_type": mime_type, "labels": labels, "id": id}
+        if isinstance(extraction_graphs, str):
+            extraction_graphs = [extraction_graphs]
+        req = {"url": url, "mime_type": mime_type, "labels": labels, "id": id, "extraction_graph_names": extraction_graphs}
         response = self.post(
             f"namespaces/{self.namespace}/ingest_remote_file",
             json=req,
