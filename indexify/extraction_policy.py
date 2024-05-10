@@ -7,7 +7,7 @@ class ExtractionPolicy:
     extractor: str
     name: str
     content_source: str
-    input_params: dict
+    input_params: Optional[dict] = None
     id: Optional[str] = None
     labels_eq: Optional[str] = None
 
