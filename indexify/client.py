@@ -347,22 +347,7 @@ class IndexifyClient:
         """
         response = self.get(f"namespaces/{self.namespace}/content/{content_id}")
         return response.json()
-
-    def get_extracted_content(self, content_id: str):
-        """
-        Get list of child for a given content id and their content
-        Args:
-            - content_id (str): id of content
-        """
-        content_tree = self.get_content_tree(content_id)
-        child_list = []
-        for item in content_tree['content_tree_metadata']:
-            if item['parent_id'] == content_id:
-                child_id = item['id']
-                content = self.download_content(child_id)
-                child_list.append({'id': child_id, 'content': content})
-        return child_list
-
+        
     def download_content(self, id: str) -> bytes:
         """
         Download content from id. Return bytes
@@ -525,6 +510,33 @@ class IndexifyClient:
             f"namespaces/{self.namespace}/content/{content_id}/content-tree"
         )
         return response.json()
+
+    def get_extracted_content(self, content_id: str, level: int = 0):
+        """
+        Get list of child for a given content id and their content up to the specified level.
+    
+        Args:
+        - content_id (str): id of content
+        - level (int): depth of content retrieval (default: 0)
+        """
+        content_tree = self.get_content_tree(content_id)
+        child_list = []
+    
+        def traverse_content(parent_id, current_level):
+            if current_level > level:
+                return
+    
+            for item in content_tree['content_tree_metadata']:
+                if item['parent_id'] == parent_id:
+                    child_id = item['id']
+                    content = self.download_content(child_id)
+                    child_list.append({'id': child_id, 'content': content})
+    
+                    traverse_content(child_id, current_level + 1)
+    
+        traverse_content(content_id, 0)
+    
+        return child_list
 
     def sql_query(self, query: str):
         """
