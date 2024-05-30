@@ -14,10 +14,33 @@ from .data_containers import TextChunk
 from indexify.exceptions import ApiException
 from dataclasses import dataclass
 from typing import List, Optional, Union, Dict
+import logging
 
 Document = namedtuple("Document", ["text", "labels", "id"])
 
 SQLQueryRow = namedtuple("SQLQueryRow", ["content_id", "data"])
+
+def generate_unique_hex_id():
+    """
+    Generate a unique hexadecimal identifier
+
+    Returns:
+        str: a unique hexadecimal string
+    """
+    return uuid.uuid4().hex[:16]
+
+def generate_hash_from_string(input_string: str):
+    """
+    Generate a hash for the given string and return it as a hexadecimal string.
+
+    Args:
+        input_string (str): The input string to hash.
+
+    Returns:
+        str: The hexadecimal hash of the input string.
+    """
+    hash_object = hashlib.sha256(input_string.encode())
+    return hash_object.hexdigest()[:16]
 
 
 @dataclass
@@ -129,9 +152,10 @@ class IndexifyClient:
             response = self._client.request(method, timeout=self._timeout, **kwargs)
             status_code = str(response.status_code)
             if status_code.startswith("4") or status_code.startswith("5"):
-                error = Error.from_tonic_error_string(str(response.url), response.text)
-                self.__print_additional_error_context(error)
-                raise error
+                raise ApiException(response.text)
+                #error = Error.from_tonic_error_string(str(response.url), response.text)
+                #self.__print_additional_error_context(error)
+                #raise error
         except httpx.ConnectError:
             message = f"Make sure the server is running and accesible at {self._service_url}"
             error = Error(status="ConnectionError", message=message)
@@ -590,6 +614,7 @@ class IndexifyClient:
         Returns:
             str: a unique hexadecimal string
         """
+        logging.warning("This method is deprecated. Use generate_unique_hex_id from indexify instead.")
         return uuid.uuid4().hex[:16]
 
     def generate_hash_from_string(self, input_string: str):
@@ -602,6 +627,7 @@ class IndexifyClient:
         Returns:
             str: The hexadecimal hash of the input string.
         """
+        logging.warning("This method is deprecated. Use generate_hash_from_string from indexify instead.")
         hash_object = hashlib.sha256(input_string.encode())
         return hash_object.hexdigest()[:16]
 
