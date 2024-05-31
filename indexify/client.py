@@ -20,6 +20,7 @@ Document = namedtuple("Document", ["text", "labels", "id"])
 
 SQLQueryRow = namedtuple("SQLQueryRow", ["content_id", "data"])
 
+
 def generate_unique_hex_id():
     """
     Generate a unique hexadecimal identifier
@@ -28,6 +29,7 @@ def generate_unique_hex_id():
         str: a unique hexadecimal string
     """
     return uuid.uuid4().hex[:16]
+
 
 def generate_hash_from_string(input_string: str):
     """
@@ -153,11 +155,13 @@ class IndexifyClient:
             status_code = str(response.status_code)
             if status_code.startswith("4") or status_code.startswith("5"):
                 raise ApiException(response.text)
-                #error = Error.from_tonic_error_string(str(response.url), response.text)
-                #self.__print_additional_error_context(error)
-                #raise error
+                # error = Error.from_tonic_error_string(str(response.url), response.text)
+                # self.__print_additional_error_context(error)
+                # raise error
         except httpx.ConnectError:
-            message = f"Make sure the server is running and accesible at {self._service_url}"
+            message = (
+                f"Make sure the server is running and accesible at {self._service_url}"
+            )
             error = Error(status="ConnectionError", message=message)
             print(error)
             raise error
@@ -371,7 +375,7 @@ class IndexifyClient:
         """
         response = self.get(f"namespaces/{self.namespace}/content/{content_id}")
         return response.json()
-        
+
     def download_content(self, id: str) -> bytes:
         """
         Download content from id. Return bytes
@@ -449,6 +453,21 @@ class IndexifyClient:
             headers={"Content-Type": "application/json"},
         )
 
+    def update_labels(self, document_id: str, labels: Dict[str, str]) -> None:
+        """
+        Update labels for a document.
+
+        Args:
+            - document_id (str): id of document to update
+            - labels (Dict[str, str]): labels to update
+        """
+        req = {"labels": labels}
+        response = self.put(
+            f"namespaces/{self.namespace}/content/{document_id}/labels",
+            json=req,
+            headers={"Content-Type": "application/json"},
+        )
+
     def update_content(self, document_id: str, path: str) -> None:
         """
         Update a piece of content with a new file
@@ -493,7 +512,13 @@ class IndexifyClient:
         )
         return response.json()["results"]
 
-    def upload_file(self, extraction_graphs: Union[str, List[str]], path: str, id=None, labels: dict = {}) -> str:
+    def upload_file(
+        self,
+        extraction_graphs: Union[str, List[str]],
+        path: str,
+        id=None,
+        labels: dict = {},
+    ) -> str:
         """
         Upload a file.
 
@@ -538,28 +563,28 @@ class IndexifyClient:
     def get_extracted_content(self, content_id: str, level: int = 0):
         """
         Get list of child for a given content id and their content up to the specified level.
-    
+
         Args:
         - content_id (str): id of content
         - level (int): depth of content retrieval (default: 0)
         """
         content_tree = self.get_content_tree(content_id)
         child_list = []
-    
+
         def traverse_content(parent_id, current_level):
             if current_level > level:
                 return
-    
-            for item in content_tree['content_tree_metadata']:
-                if item['parent_id'] == parent_id:
-                    child_id = item['id']
+
+            for item in content_tree["content_tree_metadata"]:
+                if item["parent_id"] == parent_id:
+                    child_id = item["id"]
                     content = self.download_content(child_id)
-                    child_list.append({'id': child_id, 'content': content})
-    
+                    child_list.append({"id": child_id, "content": content})
+
                     traverse_content(child_id, current_level + 1)
-    
+
         traverse_content(content_id, 0)
-    
+
         return child_list
 
     def sql_query(self, query: str):
@@ -583,18 +608,29 @@ class IndexifyClient:
         return SqlQueryResult(result=rows)
 
     def ingest_remote_file(
-        self, extraction_graphs: Union[str, List[str]], url: str, mime_type: str, labels: Dict[str, str], id=None
+        self,
+        extraction_graphs: Union[str, List[str]],
+        url: str,
+        mime_type: str,
+        labels: Dict[str, str],
+        id=None,
     ):
         if isinstance(extraction_graphs, str):
             extraction_graphs = [extraction_graphs]
-        req = {"url": url, "mime_type": mime_type, "labels": labels, "id": id, "extraction_graph_names": extraction_graphs}
+        req = {
+            "url": url,
+            "mime_type": mime_type,
+            "labels": labels,
+            "id": id,
+            "extraction_graph_names": extraction_graphs,
+        }
         response = self.post(
             f"namespaces/{self.namespace}/ingest_remote_file",
             json=req,
             headers={"Content-Type": "application/json"},
         )
         return response.json()
-    
+
     def wait_for_extraction(self, content_id: str):
         """
         Wait for extraction to complete for a given content id
@@ -602,9 +638,7 @@ class IndexifyClient:
         Args:
             - content_id (str): id of content
         """
-        response = self.get(
-            f"namespaces/{self.namespace}/content/{content_id}/wait"
-        )
+        response = self.get(f"namespaces/{self.namespace}/content/{content_id}/wait")
         response.raise_for_status()
 
     def generate_unique_hex_id(self):
@@ -614,7 +648,9 @@ class IndexifyClient:
         Returns:
             str: a unique hexadecimal string
         """
-        logging.warning("This method is deprecated. Use generate_unique_hex_id from indexify instead.")
+        logging.warning(
+            "This method is deprecated. Use generate_unique_hex_id from indexify instead."
+        )
         return uuid.uuid4().hex[:16]
 
     def generate_hash_from_string(self, input_string: str):
@@ -627,7 +663,9 @@ class IndexifyClient:
         Returns:
             str: The hexadecimal hash of the input string.
         """
-        logging.warning("This method is deprecated. Use generate_hash_from_string from indexify instead.")
+        logging.warning(
+            "This method is deprecated. Use generate_hash_from_string from indexify instead."
+        )
         hash_object = hashlib.sha256(input_string.encode())
         return hash_object.hexdigest()[:16]
 
