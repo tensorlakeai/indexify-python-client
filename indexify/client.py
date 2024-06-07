@@ -535,7 +535,7 @@ class IndexifyClient:
             response = self.post(
                 f"namespaces/{self.namespace}/upload_file",
                 files={"file": f},
-                data=labels,
+                data={"labels": json.dumps(labels)},
                 params=params,
             )
             response_json = response.json()
