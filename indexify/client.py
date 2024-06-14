@@ -4,7 +4,7 @@ import uuid
 import hashlib
 import json
 from collections import namedtuple
-from .settings import DEFAULT_SERVICE_URL
+from .settings import DEFAULT_SERVICE_URL, DEFAULT_SERVICE_URL_HTTPS
 from .extractor import Extractor
 from .extraction_policy import ExtractionPolicy, ExtractionGraph
 from .index import Index
@@ -108,7 +108,7 @@ class IndexifyClient:
         cert_path: str,
         key_path: str,
         ca_bundle_path: Optional[str] = None,
-        service_url: str = DEFAULT_SERVICE_URL,
+        service_url: str = DEFAULT_SERVICE_URL_HTTPS,
         *args,
         **kwargs,
     ) -> "IndexifyClient":
