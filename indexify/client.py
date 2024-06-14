@@ -560,7 +560,7 @@ class IndexifyClient:
         )
         return response.json()
 
-    def get_extracted_content(self, content_id: str, level: int = 0):
+    def get_extracted_content(self, content_id: str, graph_name: str, policy_name: str):
         """
         Get list of child for a given content id and their content up to the specified level.
 
@@ -570,20 +570,13 @@ class IndexifyClient:
         """
         content_tree = self.get_content_tree(content_id)
         child_list = []
-
-        def traverse_content(parent_id, current_level):
-            if current_level > level:
-                return
-
-            for item in content_tree["content_tree_metadata"]:
-                if item["parent_id"] == parent_id:
-                    child_id = item["id"]
-                    content = self.download_content(child_id)
-                    child_list.append({"id": child_id, "content": content})
-
-                    traverse_content(child_id, current_level + 1)
-
-        traverse_content(content_id, 0)
+        for item in content_tree["content_tree_metadata"]:
+            if (
+                graph_name in item["extraction_graph_names"]
+                and item["source"] == policy_name
+            ):
+                content = self.download_content(item["id"])
+                child_list.append({"id": item["id"], "content": content})
 
         return child_list
 
