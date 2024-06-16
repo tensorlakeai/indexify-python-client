@@ -631,9 +631,9 @@ class IndexifyClient:
         Args:
             - content_id (str): id of content
         """
-        print("Waiting for extraction to complete for content id: ", ",".join(content_ids))
         if type(content_ids) == str:
             content_ids = [content_ids]
+        print("Waiting for extraction to complete for content id: ", ",".join(content_ids))
         for content_id in content_ids:
             response = self.get(f"namespaces/{self.namespace}/content/{content_id}/wait")
             print("Extraction completed for content id: ", content_id)
