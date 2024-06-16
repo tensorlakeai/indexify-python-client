@@ -624,14 +624,19 @@ class IndexifyClient:
         )
         return response.json()
 
-    def wait_for_extraction(self, content_id: str):
+    def wait_for_extraction(self, content_ids: Union[str, List[str]]):
         """
         Wait for extraction to complete for a given content id
 
         Args:
             - content_id (str): id of content
         """
-        response = self.get(f"namespaces/{self.namespace}/content/{content_id}/wait")
+        print("Waiting for extraction to complete for content id: ", ",".join(content_ids))
+        if type(content_ids) == str:
+            content_ids = [content_ids]
+        for content_id in content_ids:
+            response = self.get(f"namespaces/{self.namespace}/content/{content_id}/wait")
+            print("Extraction completed for content id: ", content_id)
         response.raise_for_status()
 
     def generate_unique_hex_id(self):
