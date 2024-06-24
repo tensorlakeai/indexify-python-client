@@ -622,7 +622,8 @@ class IndexifyClient:
             json=req,
             headers={"Content-Type": "application/json"},
         )
-        return response.json()
+        response.raise_for_status()
+        return response.json()["content_id"]
 
     def wait_for_extraction(self, content_ids: Union[str, List[str]]):
         """
