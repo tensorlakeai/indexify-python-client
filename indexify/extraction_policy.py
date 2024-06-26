@@ -39,6 +39,7 @@ class ExtractionGraph:
     @classmethod
     def from_dict(cls, json: dict):
         json["id"] = json.get("id", None)
+        json["description"] = json.get("description", None)
         if "namespace" in json.keys():
             json.pop("namespace")
         return ExtractionGraph(**json)
