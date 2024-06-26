@@ -33,6 +33,7 @@ class ExtractionPolicy:
 class ExtractionGraph:
     id: str
     name: str
+    description: str
     extraction_policies: List[ExtractionPolicy]
 
     @classmethod
