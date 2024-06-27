@@ -39,6 +39,7 @@ class ExtractionGraph:
     @classmethod
     def from_dict(cls, json: dict):
         json["id"] = json.get("id", None)
+        json["description"] = json.get("description", None)
         if "namespace" in json.keys():
             json.pop("namespace")
         return ExtractionGraph(**json)
@@ -48,6 +49,11 @@ class ExtractionGraph:
         import yaml
 
         return ExtractionGraph.from_dict(yaml.load(spec, Loader=yaml.FullLoader))
+    
+    @staticmethod
+    def from_yaml_file(path: str):
+        with open(path, "r") as f:
+            return ExtractionGraph.from_yaml(f.read())
 
     def to_dict(self) -> dict:
         filtered_dict = {k: v for k, v in asdict(self).items() if v is not None}
