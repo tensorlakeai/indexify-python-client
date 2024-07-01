@@ -10,7 +10,7 @@ from .extraction_policy import ExtractionPolicy, ExtractionGraph
 from .index import Index
 from .utils import json_set_default
 from .error import Error
-from .data_containers import TextChunk
+from .data_containers import TextChunk, Content
 from indexify.exceptions import ApiException
 from dataclasses import dataclass
 from typing import List, Optional, Union, Dict
@@ -153,7 +153,9 @@ class IndexifyClient:
         try:
             response = self._client.request(method, timeout=self._timeout, **kwargs)
             status_code = str(response.status_code)
-            if status_code.startswith("4") or status_code.startswith("5"):
+            if status_code.startswith("4"):
+                raise ApiException("status code: " + status_code + " request args: " + str(kwargs))
+            if status_code.startswith("5"):
                 raise ApiException(response.text)
                 # error = Error.from_tonic_error_string(str(response.url), response.text)
                 # self.__print_additional_error_context(error)
@@ -511,6 +513,28 @@ class IndexifyClient:
             headers={"Content-Type": "application/json"},
         )
         return response.json()["results"]
+    
+    def list_content(self, extraction_graph: str, extraction_policy: str = "", start_id: str="", limit: int=10) -> List[Content]:
+        """
+        List content in the current namespace.
+
+        Args:
+            - extraction_graph (str): extraction graph name
+            - start_index (str): start index for pagination
+            - limit (int): number of items to return
+        """
+        params = {"graph": extraction_graph, "start_id": start_id, "limit": limit}
+        if extraction_policy:
+            params["source"] = extraction_policy
+        response = self.get(
+            f"namespaces/{self.namespace}/content",
+            params=params,
+        )
+        content_list = response.json()["content_list"]
+        content = []
+        for item in content_list:
+            content.append(Content.from_dict(item))
+        return content
 
     def upload_file(
         self,
