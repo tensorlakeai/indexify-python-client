@@ -526,6 +526,8 @@ class IndexifyClient:
         params = {"graph": extraction_graph, "start_id": start_id, "limit": limit}
         if extraction_policy:
             params["source"] = extraction_policy
+        else:
+            params["source"] = "ingestion"
         response = self.get(
             f"namespaces/{self.namespace}/content",
             params=params,
