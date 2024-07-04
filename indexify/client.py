@@ -586,7 +586,7 @@ class IndexifyClient:
         )
         return response.json()
 
-    def get_extracted_content(self, content_id: str, graph_name: str, policy_name: str):
+    def get_extracted_content(self, content_id: str, graph_name: str, policy_name: str, blocking=False):
         """
         Get list of child for a given content id and their content up to the specified level.
 
@@ -594,6 +594,8 @@ class IndexifyClient:
         - content_id (str): id of content
         - level (int): depth of content retrieval (default: 0)
         """
+        if blocking:
+            self.wait_for_extraction(content_id)
         content_tree = self.get_content_tree(content_id)
         child_list = []
         for item in content_tree["content_tree_metadata"]:
