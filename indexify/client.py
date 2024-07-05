@@ -370,6 +370,28 @@ class IndexifyClient:
         )
         return
 
+    def link_extraction_graphs(
+        self, source_graph: str, content_source: str, linked_graph: str
+    ):
+        """
+        Link an extraction graph to another extraction graph.
+
+        Args:
+            - source_graph (str): source extraction graph
+            - content_source (str): content source in source graph
+            - linked_graph (str): target extraction graph
+        """
+        req = {
+            "content_source": content_source,
+            "linked_graph_name": linked_graph,
+        }
+        response = self.post(
+            f"namespaces/{self.namespace}/extraction_graphs/{source_graph}/links",
+            json=req,
+            headers={"Content-Type": "application/json"},
+        )
+        return
+
     def get_content_metadata(self, content_id: str) -> dict:
         """
         Get metadata for a specific content ID in a given index.
