@@ -424,22 +424,23 @@ class IndexifyClient:
             raise TypeError(
                 "Invalid type for documents. Expected Document, str, or list of these."
             )
-
-        req = {
-            "documents": [doc._asdict() for doc in documents],
-            "extraction_graph_names": extraction_graphs,
-        }
-        response = self.post(
-            f"namespaces/{self.namespace}/add_texts",
-            json=req,
-            headers={"Content-Type": "application/json"},
-        )
-        response.raise_for_status()
-        response_json = response.json()
-        content_ids = response_json["content_ids"]
-        if len(documents) == 1 and len(content_ids) == 1:
-            return content_ids[0]
+        for document in documents:
+            document.labels["mime_type"] = "text/plain"
+        content_ids = []
+        if isinstance(extraction_graphs, str):
+            extraction_graphs = [extraction_graphs]
+        for extraction_graph in extraction_graphs:
+            for document in documents:
+                response = self.post(
+                    f"namespaces/{self.namespace}/extraction_graphs/{extraction_graph}/extract",
+                    files={"file": document.text},
+                    data={"labels": json.dumps(document.labels)}
+                )
+                response_json = response.json()
+                content_id = response_json["content_id"]
+                content_ids.append(content_id)
         return content_ids
+
 
     def delete_documents(self, document_ids: List[str]) -> None:
         """
@@ -506,9 +507,9 @@ class IndexifyClient:
             - top_k (int): top k nearest neighbors to be returned
             - filters (List[str]): list of filters to apply
         """
-        req = {"index": name, "query": query, "k": top_k, "filters": filters}
+        req = {"query": query, "k": top_k, "filters": filters}
         response = self.post(
-            f"namespaces/{self.namespace}/search",
+            f"namespaces/{self.namespace}/indexes/{name}/search",
             json=req,
             headers={"Content-Type": "application/json"},
         )
@@ -554,36 +555,26 @@ class IndexifyClient:
         """
         if isinstance(extraction_graphs, str):
             extraction_graphs = [extraction_graphs]
-        params = {"extraction_graph_names": extraction_graphs}
+        params = {}
         if id is not None:
             params["id"] = id
         with open(path, "rb") as f:
-            response = self.post(
-                f"namespaces/{self.namespace}/upload_file",
-                files={"file": f},
-                data={"labels": json.dumps(labels)},
-                params=params,
-            )
+            for extraction_graph in extraction_graphs:
+                response = self.post(
+                    f"namespaces/{self.namespace}/extraction_graphs/{extraction_graph}/extract",
+                    files={"file": f},
+                    data={"labels": json.dumps(labels)},
+                    params=params,
+                )
             response_json = response.json()
-            return response_json["content_id"]
+            content_id = response_json["content_id"]
+            return content_id
 
     def list_schemas(self) -> List[str]:
         """
         List all schemas in the current namespace.
         """
         response = self.get(f"namespaces/{self.namespace}/schemas")
-        return response.json()
-
-    def get_content_tree(self, content_id: str):
-        """
-        Get content tree for a given content id
-
-        Args:
-            - content_id (str): id of content
-        """
-        response = self.get(
-            f"namespaces/{self.namespace}/content/{content_id}/content-tree"
-        )
         return response.json()
 
     def get_extracted_content(self, content_id: str, graph_name: str, policy_name: str, blocking=False):
@@ -596,7 +587,10 @@ class IndexifyClient:
         """
         if blocking:
             self.wait_for_extraction(content_id)
-        content_tree = self.get_content_tree(content_id)
+        response = self.get(
+            f"namespaces/{self.namespace}/extraction_graphs/{graph_name}/extraction_policies/{policy_name}/content/{content_id}"
+        )
+        content_tree = response.json()
         child_list = []
         for item in content_tree["content_tree_metadata"]:
             if (
