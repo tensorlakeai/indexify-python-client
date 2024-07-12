@@ -154,7 +154,9 @@ class IndexifyClient:
             response = self._client.request(method, timeout=self._timeout, **kwargs)
             status_code = str(response.status_code)
             if status_code.startswith("4"):
-                raise ApiException("status code: " + status_code + " request args: " + str(kwargs))
+                raise ApiException(
+                    "status code: " + status_code + " request args: " + str(kwargs)
+                )
             if status_code.startswith("5"):
                 raise ApiException(response.text)
                 # error = Error.from_tonic_error_string(str(response.url), response.text)
@@ -342,11 +344,11 @@ class IndexifyClient:
         """
         Retrieve and update the list of extraction policies for the current namespace.
         """
-        response = self.get(f"namespaces/{self.namespace}")
+        response = self.get(f"namespaces/{self.namespace}/extraction_graphs")
         json = response.json()
 
         self.extraction_graphs = []
-        for graph in json["namespace"]["extraction_graphs"]:
+        for graph in json["extraction_graphs"]:
             self.extraction_graphs.append(ExtractionGraph.from_dict(graph))
 
         return self.extraction_graphs
@@ -434,13 +436,12 @@ class IndexifyClient:
                 response = self.post(
                     f"namespaces/{self.namespace}/extraction_graphs/{extraction_graph}/extract",
                     files={"file": document.text},
-                    data={"labels": json.dumps(document.labels)}
+                    data={"labels": json.dumps(document.labels)},
                 )
                 response_json = response.json()
                 content_id = response_json["content_id"]
                 content_ids.append(content_id)
         return content_ids
-
 
     def delete_documents(self, document_ids: List[str]) -> None:
         """
@@ -514,8 +515,14 @@ class IndexifyClient:
             headers={"Content-Type": "application/json"},
         )
         return response.json()["results"]
-    
-    def list_content(self, extraction_graph: str, extraction_policy: str = "", start_id: str="", limit: int=10) -> List[Content]:
+
+    def list_content(
+        self,
+        extraction_graph: str,
+        extraction_policy: str = "",
+        start_id: str = "",
+        limit: int = 10,
+    ) -> List[Content]:
         """
         List content in the current namespace.
 
@@ -577,7 +584,9 @@ class IndexifyClient:
         response = self.get(f"namespaces/{self.namespace}/schemas")
         return response.json()
 
-    def get_extracted_content(self, content_id: str, graph_name: str, policy_name: str, blocking=False):
+    def get_extracted_content(
+        self, content_id: str, graph_name: str, policy_name: str, blocking=False
+    ):
         """
         Get list of child for a given content id and their content up to the specified level.
 
@@ -656,9 +665,13 @@ class IndexifyClient:
         """
         if type(content_ids) == str:
             content_ids = [content_ids]
-        print("Waiting for extraction to complete for content id: ", ",".join(content_ids))
+        print(
+            "Waiting for extraction to complete for content id: ", ",".join(content_ids)
+        )
         for content_id in content_ids:
-            response = self.get(f"namespaces/{self.namespace}/content/{content_id}/wait")
+            response = self.get(
+                f"namespaces/{self.namespace}/content/{content_id}/wait"
+            )
             print("Extraction completed for content id: ", content_id)
         response.raise_for_status()
 
