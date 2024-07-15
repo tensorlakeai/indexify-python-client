@@ -542,6 +542,7 @@ class IndexifyClient:
         self,
         extraction_graph: str,
         extraction_policy: str = "",
+        labels_filter: List[str] = [],
         start_id: str = "",
         limit: int = 10,
     ) -> List[Content]:
@@ -558,6 +559,8 @@ class IndexifyClient:
             params["source"] = extraction_policy
         else:
             params["source"] = "ingestion"
+        if len(labels_filter) > 0:
+            params["labels_filter"] = labels_filter
         response = self.get(
             f"namespaces/{self.namespace}/content",
             params=params,
