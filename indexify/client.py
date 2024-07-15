@@ -629,7 +629,8 @@ class IndexifyClient:
                 and item["source"] == policy_name
             ):
                 content = self.download_content(item["id"])
-                child_list.append({"id": item["id"], "content": content})
+                metadata = self.get_content_metadata(item["id"])
+                child_list.append({"id": item["id"], "content": content, "metadata": metadata})
 
         return child_list
 
