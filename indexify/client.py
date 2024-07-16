@@ -399,7 +399,7 @@ class IndexifyClient:
         Args:
             - content_id (str): content id to query
         """
-        response = self.get(f"namespaces/{self.namespace}/content/{content_id}")
+        response = self.get(f"namespaces/{self.namespace}/content/{content_id}/metadata")
         return response.json()
 
     def download_content(self, id: str) -> bytes:
@@ -610,29 +610,31 @@ class IndexifyClient:
         return response.json()
 
     def get_extracted_content(
-        self, content_id: str, graph_name: str, policy_name: str, blocking=False
+        self, content_id: str, graph_name: str, extractor_name: str, blocking=False
     ):
         """
         Get list of child for a given content id and their content up to the specified level.
 
         Args:
         - content_id (str): id of content
-        - level (int): depth of content retrieval (default: 0)
+        - graph_name (str): name of extraction graph
+        - extractor_name (str): name of extractor
+        - blocking (bool): wait for extraction to complete before returning (default: False)
         """
         if blocking:
             self.wait_for_extraction(content_id)
         response = self.get(
-            f"namespaces/{self.namespace}/extraction_graphs/{graph_name}/extraction_policies/{policy_name}/content/{content_id}"
+            f"namespaces/{self.namespace}/extraction_graphs/{graph_name}/extraction_policies/{extractor_name}/content/{content_id}"
         )
         content_tree = response.json()
         child_list = []
         for item in content_tree["content_tree_metadata"]:
             if (
                 graph_name in item["extraction_graph_names"]
-                and item["source"] == policy_name
+                and item["source"] == extractor_name
             ):
                 content = self.download_content(item["id"])
-                child_list.append({"id": item["id"], "content": content})
+                child_list.append({"id": item["id"], "mime_type": item["mime_type"], "content": content})
 
         return child_list
 
