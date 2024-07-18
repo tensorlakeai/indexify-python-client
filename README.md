@@ -15,7 +15,7 @@ pip install indexify
 
 ## Usage
 
-See the [getting started](https://getindexify.com/getting_started/) guide for examples of how to use the client.
+See the [getting started](https://docs.getindexify.com/getting_started/) guide for examples of how to use the client.
 Look at the [examples](examples) directory for more examples.
 
 ## Development
