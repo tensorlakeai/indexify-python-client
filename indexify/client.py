@@ -402,14 +402,14 @@ class IndexifyClient:
         response = self.get(f"namespaces/{self.namespace}/content/{content_id}/metadata")
         return response.json()
 
-    def download_content(self, id: str) -> bytes:
+    def download_content(self, content_id: str) -> bytes:
         """
         Download content from id. Return bytes
 
         Args:
-            - id (str): id of content to download
+            - content_id (str): id of content to download
         """
-        response = self.get(f"namespaces/{self.namespace}/content/{id}/download")
+        response = self.get(f"namespaces/{self.namespace}/content/{content_id}/download")
         return response.content
 
     def add_documents(
@@ -610,21 +610,21 @@ class IndexifyClient:
         return response.json()
 
     def get_extracted_content(
-        self, content_id: str, graph_name: str, extractor_name: str, blocking=False
+        self, ingested_content_id: str, graph_name: str, extractor_name: str, blocking=False
     ):
         """
         Get list of child for a given content id and their content up to the specified level.
 
         Args:
-        - content_id (str): id of content
+        - ingested_content_id (str): id of content
         - graph_name (str): name of extraction graph
         - extractor_name (str): name of extractor
         - blocking (bool): wait for extraction to complete before returning (default: False)
         """
         if blocking:
-            self.wait_for_extraction(content_id)
+            self.wait_for_extraction(ingested_content_id)
         response = self.get(
-            f"namespaces/{self.namespace}/extraction_graphs/{graph_name}/extraction_policies/{extractor_name}/content/{content_id}"
+            f"namespaces/{self.namespace}/extraction_graphs/{graph_name}/extraction_policies/{extractor_name}/content/{ingested_content_id}"
         )
         content_tree = response.json()
         child_list = []
