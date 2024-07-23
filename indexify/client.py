@@ -554,7 +554,7 @@ class IndexifyClient:
             - start_index (str): start index for pagination
             - limit (int): number of items to return
         """
-        params = {"graph": extraction_graph, "start_id": start_id, "limit": limit}
+        params = {"start_id": start_id, "limit": limit}
         if extraction_policy:
             params["source"] = extraction_policy
         else:
@@ -562,7 +562,7 @@ class IndexifyClient:
         if len(labels_filter) > 0:
             params["labels_filter"] = labels_filter
         response = self.get(
-            f"namespaces/{self.namespace}/content",
+            f"namespaces/{self.namespace}/extraction_graphs/{extraction_graph}/content",
             params=params,
         )
         content_list = response.json()["content_list"]
