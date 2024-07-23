@@ -610,7 +610,7 @@ class IndexifyClient:
         return response.json()
 
     def get_extracted_content(
-        self, ingested_content_id: str, graph_name: str, extractor_name: str, blocking=False
+        self, ingested_content_id: str, graph_name: str, policy_name: str, blocking=False
     ):
         """
         Get list of child for a given content id and their content up to the specified level.
@@ -618,20 +618,20 @@ class IndexifyClient:
         Args:
         - ingested_content_id (str): id of content
         - graph_name (str): name of extraction graph
-        - extractor_name (str): name of extractor
+        - policy_name(str): name of extraction policy in the graph
         - blocking (bool): wait for extraction to complete before returning (default: False)
         """
         if blocking:
             self.wait_for_extraction(ingested_content_id)
         response = self.get(
-            f"namespaces/{self.namespace}/extraction_graphs/{graph_name}/extraction_policies/{extractor_name}/content/{ingested_content_id}"
+            f"namespaces/{self.namespace}/extraction_graphs/{graph_name}/content/{ingested_content_id}/extraction_policies/{policy_name}"
         )
         content_tree = response.json()
         child_list = []
         for item in content_tree["content_tree_metadata"]:
             if (
                 graph_name in item["extraction_graph_names"]
-                and item["source"] == extractor_name
+                and item["source"] == policy_name 
             ):
                 content = self.download_content(item["id"])
                 child_list.append({"id": item["id"], "mime_type": item["mime_type"], "content": content})
