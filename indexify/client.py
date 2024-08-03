@@ -400,7 +400,7 @@ class IndexifyClient:
             - content_id (str): content id to query
         """
         response = self.get(f"namespaces/{self.namespace}/content/{content_id}/metadata")
-        return response.json()
+        return response.json()["content_metadata"]
 
     def download_content(self, content_id: str) -> bytes:
         """
