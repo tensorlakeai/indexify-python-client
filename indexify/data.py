@@ -1,4 +1,4 @@
-from typing import List, Optional, Literal, Dict
+from typing import Any, List, Optional, Literal, Dict
 from pydantic import BaseModel, Json, Field
 import json
 
@@ -26,6 +26,7 @@ class Feature(BaseModel):
 
 
 class Content(BaseModel):
+    id: str
     content_type: Optional[str]
     data: bytes
     features: List[Feature] = []
@@ -36,7 +37,8 @@ class Content(BaseModel):
         text: str,
         features: List[Feature] = [],
     ):
-        return cls(
+        return Content(
+            id="none-for-now",
             content_type="text/plain",
             data=bytes(text, "utf-8"),
             features=features,
@@ -62,11 +64,11 @@ class Content(BaseModel):
 class ContentMetadata(BaseModel):
     id: str
     parent_id: str
-    labels: Dict[str, any]
+    labels: Dict[str, Any]
     extraction_graph_names: List[str]
     extraction_policy: str
     mime_type: str
-    extracted_metadata: Dict[str, any] = {}
+    extracted_metadata: Dict[str, Any] = {}
 
     @classmethod
     def from_dict(cls, json: Dict):
