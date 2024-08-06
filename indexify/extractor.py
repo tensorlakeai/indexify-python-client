@@ -7,6 +7,7 @@ import json
 
 class EmbeddingSchema(BaseModel):
     dimension: int
+
 class Extractor(ABC):
     name: str = ""
 
@@ -88,23 +89,32 @@ def extractor(
     del args["sample_content"]
 
     def construct(fn):
-        hint = get_type_hints(fn).get("params", dict)
+        def wrapper():
+            hint = get_type_hints(fn).get("params", dict)
 
-        if not args.get("name"):
-            args["name"] = (
-                f"{inspect.getmodule(inspect.stack()[1][0]).__name__}:{fn.__name__}"
-            )
+            if not args.get("name"):
+                args["name"] = (
+                    f"{inspect.getmodule(inspect.stack()[1][0]).__name__}:{fn.__name__}"
+                )
 
-        class DecoratedFn(Extractor):
-            def extract(self, content: Content, params: hint) -> List[Content]:  # type: ignore
-                return fn(content, params)
+            class DecoratedFn(Extractor):
+                @classmethod
+                def extract(cls, content: Content, params: hint) -> List[Content]:  # type: ignore
+                    # TODO we can force all the functions to take in a parms object
+                    # or check if someone adds a params
+                    if params is None:
+                        return fn(content)
+                    else:
+                        return fn(content, params)
 
-            def sample_input(self) -> Content:
-                return sample_content() if sample_content else self.sample_text()
+                def sample_input(self) -> Content:
+                    return sample_content() if sample_content else self.sample_text()
 
-        for key, val in args.items():
-            setattr(DecoratedFn, key, val)
+            for key, val in args.items():
+                setattr(DecoratedFn, key, val)
 
-        return DecoratedFn
+            return DecoratedFn
+
+        return wrapper
 
     return construct
