@@ -2,7 +2,7 @@ from indexify import Content, Feature, extractor
 from indexify.extractor import Extractor
 
 from collections import defaultdict
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 class ChunkOptions(BaseModel):
@@ -31,8 +31,17 @@ def object_detector(content: Content) -> List[Content]:
 
 @extractor(description="Chunks text into paragraphs")
 def text_chunks(content: Content, params: ChunkOptions) -> List[Content]:
+    # TODO this is hardcoded and should call the model
+    metadata1 = Feature.metadata(value={'a': 'one', 'b': 'two', 'c': "three"})
+    metadata2 = Feature.metadata(value={'a': '2', 'b': '1'})
+    features = [metadata1, metadata2]
+
     text = content.data.decode('utf-8')
-    return [Content.from_text(i + "--" + j) for i, j in zip(text.split()[:-1], text.split()[1:])]
+    ret = [Content.from_text(i + "--" + j, features=features) for i, j in zip(text.split()[:-1], text.split()[1:])]
+
+    ret.extend([Content.from_text("text chunk that wasn't filtered")])
+
+    return ret
 
 @extractor(description="Embeds text chunks")
 def chunk_embeddings(content: Content) -> List[Feature]:
@@ -45,7 +54,7 @@ def _id(content: Content) -> List[Content]:
 
 class Graph:
     def __init__(self, name: str):
-        # TODO name check, name collision on insert, cycles
+        # TODO check for cycles
         self.name = name
 
         self.nodes: Dict[str, Callable] = {}
@@ -63,13 +72,16 @@ class Graph:
         self._start_node = None
 
     def node(self, name: str, closure: Extractor, params: Any = None) -> None:
+        if name in self.nodes:
+            raise Exception(f"Cannot insert node, node with name: `{name}` already exists")
+
         self.nodes[name] = closure
         self.params[name] = params
 
         # assign each node a rank of 1 to init the graph
         self._topo_counter[name] = 1
 
-    def edge(self, from_node: str, to_node: str, prefilter_predicates: str = "") -> None:
+    def edge(self, from_node: str, to_node: str, prefilter_predicates: Optional[str] = None) -> None:
         self.edges[from_node].append((to_node, prefilter_predicates))
 
         self._topo_counter[to_node] += 1
@@ -104,9 +116,27 @@ class LocalRunner:
 
                 self._run(g, content=r, node_name=out_edge)
 
-    def _prefilter_content(self, content: Content, prefilter_predicate: str) -> bool:
-        # TODO impl
-        return False
+    def _prefilter_content(self, content: Content, prefilter_predicate: Optional[str]) -> bool:
+        if prefilter_predicate is None:
+            return False
+
+        atoms = prefilter_predicate.split('and')
+        if len(atoms) == 0 or len(atoms) == 1:
+            return False
+
+        # TODO For now only support `and` and `=` and `string values`
+        bools = []
+        for feature in content.features:
+            if feature.feature_type == 'metadata':
+                values = feature.value
+
+                print(f'{prefilter_predicate, atoms}')
+                for atom in atoms:
+                    l, r = atom.split('=')
+                    if l in values:
+                        bools.append(values[l] == r)
+
+        return all(bools)
 
     def get_result(self, node_name: str) -> Content:
         return self.results[node_name]
@@ -121,13 +151,14 @@ if __name__ == "__main__":
     g.node(name="text-chunker", closure=text_chunks, params={"chunk_size": 500})
     g.node(name="chunk-embedding", closure=chunk_embeddings)
 
-    # TODO add a pre-filter="tag1=10 and tag2=20"
-
     g.edge("pdf-extraction", "filter-for-profanity")
     g.edge("pdf-extraction", "object-detector")
 
     g.edge("filter-for-profanity", "text-chunker")
-    g.edge("object-detector", "text-chunker")
+    g.edge("object-detector", "text-chunker", prefilter_predicates="a=one and c=three")
+
+    #g.edge("object-detector", "text-chunker")
+    #output: ['this--is', 'is--stupid', "this--isn't", "isn't--stupid", 'detected--r12c201', 'detected--r1c1', 'detected--r12c201', 'detected--r1c1', 'detected--r12c201', 'detected--r1c1']
 
     g.edge("text-chunker", "chunk-embedding")
 
