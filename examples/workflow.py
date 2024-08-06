@@ -58,12 +58,26 @@ class Graph:
         self.nodes["start"] = _id
         self.nodes["end"] = _id
 
+        self._topo_counter = defaultdict(int)
+
+        self._start_node = None
+
     def node(self, name: str, closure: Extractor, params: Any = None) -> None:
         self.nodes[name] = closure
         self.params[name] = params
 
+        # assign each node a rank of 1 to init the graph
+        self._topo_counter[name] = 1
+
     def edge(self, from_node: str, to_node: str, prefilter_predicates: str = "") -> None:
         self.edges[from_node].append((to_node, prefilter_predicates))
+
+        self._topo_counter[to_node] += 1
+
+    def _assign_start_node(self):
+        # this method should be called before a graph can be run
+        nodes = sorted(self._topo_counter.items(), key=lambda x: x[1])
+        self._start_node = nodes[0][0]
 
 
 class LocalRunner:
@@ -71,7 +85,8 @@ class LocalRunner:
         self.results: Dict[str, Any] = defaultdict(list) # TODO should the Any be Content?
 
     def run(self, g, content: Content):
-        return self._run(g, content=content, node_name="start")
+        g._assign_start_node()
+        return self._run(g, content=content, node_name=g._start_node)
 
     def _run(self, g, content: Content, node_name: str):
         extractor_construct: Callable = g.nodes[node_name]
@@ -106,10 +121,7 @@ if __name__ == "__main__":
     g.node(name="text-chunker", closure=text_chunks, params={"chunk_size": 500})
     g.node(name="chunk-embedding", closure=chunk_embeddings)
 
-    # add a pre-filter="tag1=10 and tag2=20"
-
-    # change this to not need start or end
-    g.edge("start", "pdf-extraction")
+    # TODO add a pre-filter="tag1=10 and tag2=20"
 
     g.edge("pdf-extraction", "filter-for-profanity")
     g.edge("pdf-extraction", "object-detector")
@@ -119,11 +131,9 @@ if __name__ == "__main__":
 
     g.edge("text-chunker", "chunk-embedding")
 
-    g.edge("chunk-embedding", "end")
-
     # TODO will come back to this
     #content = Content.from_file("sample.pdf")
     local_runner = LocalRunner()
     local_runner.run(g, Content.from_text(""))
 
-    print([i.data.decode('utf-8') for i in local_runner.get_result(node_name="end")])
+    print([i.data.decode('utf-8') for i in local_runner.get_result(node_name="chunk-embedding")])
