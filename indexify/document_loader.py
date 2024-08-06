@@ -1,7 +1,7 @@
 import os
 import requests
 from typing import List, Optional
-from indexify import IndexifyClient
+from .client import IndexifyClient
 
 def simple_directory_loader(
     client: IndexifyClient,
