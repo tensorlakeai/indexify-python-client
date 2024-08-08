@@ -6,12 +6,11 @@ import json
 from collections import namedtuple
 from .settings import DEFAULT_SERVICE_URL, DEFAULT_SERVICE_URL_HTTPS
 from .extractor import Extractor
-from .extraction_policy import ExtractionPolicy, ExtractionGraph
-from .index import Index
+from .extraction_policy import ExtractionGraph
 from .utils import json_set_default
 from .error import Error
+from .data import Content
 from .directory_loader import DataLoader
-from indexify import Content
 from indexify.exceptions import ApiException
 from dataclasses import dataclass
 from typing import List, Optional, Union, Dict
