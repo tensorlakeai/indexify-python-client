@@ -49,7 +49,7 @@ class ExtractionGraph:
         import yaml
 
         return ExtractionGraph.from_dict(yaml.load(spec, Loader=yaml.FullLoader))
-    
+
     @staticmethod
     def from_yaml_file(path: str):
         with open(path, "r") as f:

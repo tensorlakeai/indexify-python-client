@@ -315,7 +315,7 @@ class IndexifyClient:
             "content_url": f"{self._service_url}/namespaces/{self.namespace}/content/{content['id']}/download",
         }
 
-    def indexes(self) -> List[Index]:
+    def indexes(self) -> dict:
         """
         Get the indexes of the current namespace.
 
@@ -398,7 +398,9 @@ class IndexifyClient:
         Args:
             - content_id (str): content id to query
         """
-        response = self.get(f"namespaces/{self.namespace}/content/{content_id}/metadata")
+        response = self.get(
+            f"namespaces/{self.namespace}/content/{content_id}/metadata"
+        )
         return response.json()["content_metadata"]
 
     def download_content(self, content_id: str) -> bytes:
@@ -408,7 +410,9 @@ class IndexifyClient:
         Args:
             - content_id (str): id of content to download
         """
-        response = self.get(f"namespaces/{self.namespace}/content/{content_id}/download")
+        response = self.get(
+            f"namespaces/{self.namespace}/content/{content_id}/download"
+        )
         return response.content
 
     def add_documents(
@@ -629,7 +633,11 @@ class IndexifyClient:
         return response.json()
 
     def get_extracted_content(
-        self, ingested_content_id: str, graph_name: str, policy_name: str, blocking=False
+        self,
+        ingested_content_id: str,
+        graph_name: str,
+        policy_name: str,
+        blocking=False,
     ):
         """
         Get list of child for a given content id and their content up to the specified level.
@@ -650,10 +658,16 @@ class IndexifyClient:
         for item in content_tree["content_tree_metadata"]:
             if (
                 graph_name in item["extraction_graph_names"]
-                and item["source"] == policy_name 
+                and item["source"] == policy_name
             ):
                 content = self.download_content(item["id"])
-                child_list.append({"id": item["id"], "mime_type": item["mime_type"], "content": content})
+                child_list.append(
+                    {
+                        "id": item["id"],
+                        "mime_type": item["mime_type"],
+                        "content": content,
+                    }
+                )
 
         return child_list
 
