@@ -11,9 +11,7 @@ from .index import Index
 from .utils import json_set_default
 from .error import Error
 from .directory_loader import DataLoader
-from .data_containers import TextChunk
-from .data_containers import Content as NamespaceContent
-from indexify_extractor_sdk import Content
+from indexify import Content
 from indexify.exceptions import ApiException
 from dataclasses import dataclass
 from typing import List, Optional, Union, Dict
@@ -523,7 +521,7 @@ class IndexifyClient:
 
     def search_index(
         self, name: str, query: str, top_k: int, filters: List[str] = []
-    ) -> list[TextChunk]:
+    ) -> dict:
         """
         Search index in the current namespace.
 
