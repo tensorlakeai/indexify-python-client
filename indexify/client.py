@@ -9,7 +9,7 @@ from .extractor import Extractor
 from .extraction_policy import ExtractionGraph
 from .utils import json_set_default
 from .error import Error
-from .data import Content
+from .data import Content, ContentMetadata
 from .directory_loader import DataLoader
 from indexify.exceptions import ApiException
 from dataclasses import dataclass
@@ -578,7 +578,7 @@ class IndexifyClient:
     def upload_file(
         self,
         extraction_graphs: Union[str, List[str]],
-        path: Union[str, Content],
+        path: Union[str, Content, ContentMetadata],  # Update to accept ContentMetadata
         id=None,
         labels: dict = {},
     ) -> str:
@@ -586,7 +586,8 @@ class IndexifyClient:
         Upload a file or content.
 
         Args:
-            - path (Union[str, Content]): relative path to the file to be uploaded or a Content object
+            - path (Union[str, Content, ContentMetadata]): relative path to the file to be uploaded, 
+            a Content object, or a ContentMetadata object
             - labels (dict): labels to be associated with the file
         """
         if isinstance(extraction_graphs, str):
@@ -600,8 +601,10 @@ class IndexifyClient:
                 file_content = f.read()
         elif isinstance(path, Content):
             file_content = path.data
+        elif isinstance(path, ContentMetadata):  # Check for ContentMetadata
+            file_content = path.get_bytes()
         else:
-            raise ValueError("path must be either a string (file path) or a Content object")
+            raise ValueError("path must be either a string (file path), Content, or ContentMetadata object")
 
         for extraction_graph in extraction_graphs:
             response = self.post(

@@ -1,13 +1,11 @@
-from indexify_extractor_sdk import Content
+from .data import Content, ContentMetadata
 from abc import ABC, abstractmethod
-from typing import List, Optional, Type, Union
+from typing import List, Optional
 import os
-import json
-import requests
 
 class DataLoader(ABC):
     @abstractmethod
-    def load(self, limit: int) -> List[Content]:
+    def load(self, limit: int) -> List[ContentMetadata]:
         pass
 
     @abstractmethod
@@ -20,19 +18,19 @@ class SimpleDirectoryLoader(DataLoader):
         self.file_extensions = file_extensions
         self.processed_files = set()
 
-    def load(self, limit: int) -> List[Content]:
-        contents = []
+    def load(self, limit: int) -> List[ContentMetadata]:
+        contents_metadata = []
         for root, _, files in os.walk(self.directory):
             for file in files:
-                if len(contents) >= limit:
+                if len(contents_metadata) >= limit:
                     break
                 if self.file_extensions is None or any(file.endswith(ext) for ext in self.file_extensions):
                     file_path = os.path.join(root, file)
                     if file_path not in self.processed_files:
-                        f = open(file_path, "rb")
-                        contents.append(Content(data=f.read()))
+                        contents_metadata.append(ContentMetadata.load_content_from_file(file_path))
                         self.processed_files.add(file_path)
-        return contents
+                        
+        return contents_metadata
 
     def state(self) -> dict:
         return {
