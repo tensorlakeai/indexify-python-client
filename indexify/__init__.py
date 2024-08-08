@@ -9,6 +9,7 @@ from .client import (
 from .data import ContentMetadata, Content, Feature
 from .extractor import Extractor, extractor, EmbeddingSchema
 from .settings import DEFAULT_SERVICE_URL
+from .document_loader import simple_directory_loader
 
 __all__ = [
     "ContentMetadata",
@@ -25,4 +26,5 @@ __all__ = [
     "DEFAULT_SERVICE_URL",
     "generate_hash_from_string",
     "generate_unique_hex_id",
+    "simple_directory_loader",
 ]
