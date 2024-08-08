@@ -8,7 +8,6 @@ from .client import (
 )
 from .data import ContentMetadata, Content, Feature
 from .extractor import Extractor, extractor, EmbeddingSchema
-from .directory_loader import SimpleDirectoryLoader
 from .settings import DEFAULT_SERVICE_URL
 
 __all__ = [
