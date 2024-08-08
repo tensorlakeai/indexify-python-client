@@ -9,7 +9,8 @@ from .extractor import Extractor
 from .extraction_policy import ExtractionGraph
 from .utils import json_set_default
 from .error import Error
-from .data import Content
+from .data import Content, ContentMetadata
+from .directory_loader import DataLoader
 from indexify.exceptions import ApiException
 from dataclasses import dataclass
 from typing import List, Optional, Union, Dict
@@ -577,15 +578,16 @@ class IndexifyClient:
     def upload_file(
         self,
         extraction_graphs: Union[str, List[str]],
-        path: str,
+        path: Union[str, ContentMetadata],  # Update to accept ContentMetadata
         id=None,
         labels: dict = {},
     ) -> str:
         """
-        Upload a file.
+        Upload a file or content.
 
         Args:
-            - path (str): relative path to the file to be uploaded
+            - path (Union[str, Content, ContentMetadata]): relative path to the file to be uploaded, 
+            a Content object, or a ContentMetadata object
             - labels (dict): labels to be associated with the file
         """
         if isinstance(extraction_graphs, str):
@@ -593,17 +595,37 @@ class IndexifyClient:
         params = {}
         if id is not None:
             params["id"] = id
-        with open(path, "rb") as f:
-            for extraction_graph in extraction_graphs:
-                response = self.post(
-                    f"namespaces/{self.namespace}/extraction_graphs/{extraction_graph}/extract",
-                    files={"file": f},
-                    data={"labels": json.dumps(labels)},
-                    params=params,
-                )
-            response_json = response.json()
-            content_id = response_json["content_id"]
-            return content_id
+
+        if isinstance(path, str):
+            with open(path, "rb") as f:
+                file_content = f.read()
+        elif isinstance(path, ContentMetadata):
+            file_content = path.get_bytes()
+        else:
+            raise ValueError("path must be either a string (file path), or ContentMetadata object")
+
+        for extraction_graph in extraction_graphs:
+            response = self.post(
+                f"namespaces/{self.namespace}/extraction_graphs/{extraction_graph}/extract",
+                files={"file": file_content},
+                data={"labels": json.dumps(labels)},
+                params=params,
+            )
+        response_json = response.json()
+        content_id = response_json["content_id"]
+        return content_id
+    
+    def ingest_from_loader(self, loader: DataLoader, extraction_graph: str, limit: int = 100) -> List[str]:
+        """
+        Loads content using the loader, uploads them to Indexify and returns the content ids.
+        """
+        content_ids = []
+        contents = loader.load(limit)
+        for content in contents:
+            content_id = self.upload_file(extraction_graph, content)
+            self.wait_for_extraction(content_id)
+            content_ids.append(content_id)
+        return content_ids
 
     def list_schemas(self) -> List[str]:
         """
