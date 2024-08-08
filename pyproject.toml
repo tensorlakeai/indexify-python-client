@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "indexify"
-version = "0.0.35"
+version = "0.0.36"
 description = "Python Client for Indexify"
 authors = ["Diptanu Gon Choudhury <diptanuc@gmail.com>", "Lucas Jackson <lucas@tensorlake.ai>", "Vijay Parthasarathy <vijay2win@gmail.com>"]
 license = "Apache 2.0"
@@ -12,6 +12,7 @@ repository = "https://github.com/tensorlakeai/indexify"
 python = "^3.9"
 httpx = { version = "^0.26", extras = ["http2"] }
 pyyaml = "^6.0.1"
+pydantic = "^2.8"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
