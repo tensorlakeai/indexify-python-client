@@ -10,7 +10,6 @@ from .extraction_policy import ExtractionGraph
 from .utils import json_set_default
 from .error import Error
 from .data import Content
-from .directory_loader import DataLoader
 from indexify.exceptions import ApiException
 from dataclasses import dataclass
 from typing import List, Optional, Union, Dict
