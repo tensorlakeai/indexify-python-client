@@ -10,7 +10,10 @@ from .extraction_policy import ExtractionPolicy, ExtractionGraph
 from .index import Index
 from .utils import json_set_default
 from .error import Error
-from .data_containers import TextChunk, Content
+from .directory_loader import DataLoader
+from .data_containers import TextChunk
+from .data_containers import Content as NamespaceContent
+from indexify_extractor_sdk import Content
 from indexify.exceptions import ApiException
 from dataclasses import dataclass
 from typing import List, Optional, Union, Dict
@@ -545,7 +548,7 @@ class IndexifyClient:
         labels_filter: List[str] = [],
         start_id: str = "",
         limit: int = 10,
-    ) -> List[Content]:
+    ) -> List[NamespaceContent]:
         """
         List content in the current namespace.
 
@@ -568,7 +571,7 @@ class IndexifyClient:
         content_list = response.json()["content_list"]
         content = []
         for item in content_list:
-            content.append(Content.from_dict(item))
+            content.append(NamespaceContent.from_dict(item))
         return content
 
     def upload_file(
@@ -609,6 +612,18 @@ class IndexifyClient:
         response_json = response.json()
         content_id = response_json["content_id"]
         return content_id
+    
+    def ingest_from_loader(self, loader: DataLoader, extraction_graph: str, limit: int = 100) -> List[str]:
+        """
+        Loads content using the loader, uploads them to Indexify and returns the content ids.
+        """
+        content_ids = []
+        contents = loader.load(limit)
+        for content in contents:
+            content_id = self.upload_file(extraction_graph, content)
+            self.wait_for_extraction(content_id)
+            content_ids.append(content_id)
+        return content_ids
 
     def list_schemas(self) -> List[str]:
         """
