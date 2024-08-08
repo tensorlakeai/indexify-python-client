@@ -7,6 +7,7 @@ from .client import (
     generate_unique_hex_id,
 )
 from .data import ContentMetadata, Content, Feature
+from .directory_loader import SimpleDirectoryLoader
 from .extractor import Extractor, extractor, EmbeddingSchema
 from .settings import DEFAULT_SERVICE_URL
 
