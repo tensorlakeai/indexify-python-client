@@ -69,7 +69,6 @@ class ContentMetadata(BaseModel):
     extraction_policy: str
     mime_type: str
     extracted_metadata: Dict[str, Any] = {}
-    content: Optional[Content] = None
 
     @classmethod
     def from_dict(cls, json: Dict):
@@ -83,10 +82,11 @@ class ContentMetadata(BaseModel):
             extracted_metadata=json["extracted_metadata"],
         )
 
-    def load_content_from_file(self, path: str):
+    @classmethod
+    def load_from_file(self, path: str):
         self.content = Content.from_file(path)
 
-    def get_bytes(self):
+    def get_bytes(self, n: int = -1):
         if self.content:
-            return self.content.data
+            return self.content.data[:n]
         return None

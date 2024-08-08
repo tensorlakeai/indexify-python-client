@@ -578,7 +578,7 @@ class IndexifyClient:
     def upload_file(
         self,
         extraction_graphs: Union[str, List[str]],
-        path: Union[str, Content, ContentMetadata],  # Update to accept ContentMetadata
+        path: Union[str, ContentMetadata],  # Update to accept ContentMetadata
         id=None,
         labels: dict = {},
     ) -> str:
@@ -599,12 +599,10 @@ class IndexifyClient:
         if isinstance(path, str):
             with open(path, "rb") as f:
                 file_content = f.read()
-        elif isinstance(path, Content):
-            file_content = path.data
-        elif isinstance(path, ContentMetadata):  # Check for ContentMetadata
+        elif isinstance(path, ContentMetadata):
             file_content = path.get_bytes()
         else:
-            raise ValueError("path must be either a string (file path), Content, or ContentMetadata object")
+            raise ValueError("path must be either a string (file path), or ContentMetadata object")
 
         for extraction_graph in extraction_graphs:
             response = self.post(

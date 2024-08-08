@@ -7,7 +7,6 @@ from .client import (
     generate_unique_hex_id,
 )
 from .data import ContentMetadata, Content, Feature
-from .directory_loader import SimpleDirectoryLoader
 from .extractor import Extractor, extractor, EmbeddingSchema
 from .settings import DEFAULT_SERVICE_URL
 
@@ -22,7 +21,6 @@ __all__ = [
     "Document",
     "IndexifyClient",
     "ExtractionGraph",
-    "SimpleDirectoryLoader",
     "ExtractionGraphBuilder" "ExtractionPolicy",
     "DEFAULT_SERVICE_URL",
     "generate_hash_from_string",
