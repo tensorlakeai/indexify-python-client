@@ -574,15 +574,15 @@ class IndexifyClient:
     def upload_file(
         self,
         extraction_graphs: Union[str, List[str]],
-        path: str,
+        path: Union[str, Content],
         id=None,
         labels: dict = {},
     ) -> str:
         """
-        Upload a file.
+        Upload a file or content.
 
         Args:
-            - path (str): relative path to the file to be uploaded
+            - path (Union[str, Content]): relative path to the file to be uploaded or a Content object
             - labels (dict): labels to be associated with the file
         """
         if isinstance(extraction_graphs, str):
@@ -590,17 +590,25 @@ class IndexifyClient:
         params = {}
         if id is not None:
             params["id"] = id
-        with open(path, "rb") as f:
-            for extraction_graph in extraction_graphs:
-                response = self.post(
-                    f"namespaces/{self.namespace}/extraction_graphs/{extraction_graph}/extract",
-                    files={"file": f},
-                    data={"labels": json.dumps(labels)},
-                    params=params,
-                )
-            response_json = response.json()
-            content_id = response_json["content_id"]
-            return content_id
+
+        if isinstance(path, str):
+            with open(path, "rb") as f:
+                file_content = f.read()
+        elif isinstance(path, Content):
+            file_content = path.data
+        else:
+            raise ValueError("path must be either a string (file path) or a Content object")
+
+        for extraction_graph in extraction_graphs:
+            response = self.post(
+                f"namespaces/{self.namespace}/extraction_graphs/{extraction_graph}/extract",
+                files={"file": file_content},
+                data={"labels": json.dumps(labels)},
+                params=params,
+            )
+        response_json = response.json()
+        content_id = response_json["content_id"]
+        return content_id
 
     def list_schemas(self) -> List[str]:
         """
