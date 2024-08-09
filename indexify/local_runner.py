@@ -1,4 +1,4 @@
-from indexify import Content
+from indexify import Content, Extractor
 
 from collections import defaultdict
 from typing import Any, Callable, Dict, Optional
@@ -49,5 +49,6 @@ class LocalRunner:
 
         return all(bools)
 
-    def get_result(self, node_name: str) -> Content:
+    def get_result(self, node: Extractor) -> Content:
+        node_name = node._extractor_name
         return self.results[node_name]
