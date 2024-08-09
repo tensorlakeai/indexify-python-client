@@ -51,30 +51,31 @@ def chunk_embeddings(content: Content) -> List[Feature]:
 if __name__ == "__main__":
     g = Graph("FilterGraph")
 
-    a = g.node(name="pdf-extraction", closure=pdf_extraction)
-    g.node(name="filter-for-profanity", closure=filter_for_profanity, params={"words": ["fuck"]})
-    g.node(name="object-detector", closure=object_detector)
-    g.node(name="text-chunker", closure=text_chunks, params={"chunk_size": 500})
-    g.node(name="chunk-embedding", closure=chunk_embeddings)
+    (g.node(pdf_extraction)
+     .node(filter_for_profanity, params={"words": ["fuck"]})
+     .node(object_detector)
+     .node(text_chunks, params={"chunk_size": 500})
+     .node(chunk_embeddings)
+    )
 
-    g.edge("pdf-extraction", "filter-for-profanity")
-    g.edge("pdf-extraction", "object-detector")
+    (
+        g.edge(pdf_extraction, filter_for_profanity)
+        .edge(pdf_extraction, object_detector)
+        .edge(filter_for_profanity, text_chunks)
+        .edge(object_detector, text_chunks, prefilter_predicates="a=one and c=three")
+        .edge(text_chunks, chunk_embeddings)
+    )
 
-    g.edge("filter-for-profanity", "text-chunker")
-
-    # Example of how to use this edge without a predicated is commented out below.
-    g.edge("object-detector", "text-chunker", prefilter_predicates="a=one and c=three")
-    #g.edge("object-detector", "text-chunker")
-    #output: ['this--is', 'is--stupid', "this--isn't", "isn't--stupid", 'detected--r12c201', 'detected--r1c1', 'detected--r12c201', 'detected--r1c1', 'detected--r12c201', 'detected--r1c1']
-
-    g.edge("text-chunker", "chunk-embedding")
+    # Use this edge replacement in the comment as an example of how to use this edge without a predicated is commented out below.
+    #g.edge(object_detector, text_chunks)
+    #expected output: ['this--is', 'is--stupid', "this--isn't", "isn't--stupid", 'detected--r12c201', 'detected--r1c1', 'detected--r12c201', 'detected--r1c1', 'detected--r12c201', 'detected--r1c1']
 
     # TODO read from the pdf file.
     #content = Content.from_file("sample.pdf")
     local_runner = LocalRunner()
     local_runner.run(g, Content.from_text(""))
 
-    print([i.data.decode('utf-8') for i in local_runner.get_result(node_name="chunk-embedding")])
+    print([i.data.decode('utf-8') for i in local_runner.get_result(chunk_embeddings)])
     # output: ['this--is', 'is--stupid', "text chunk that wasn't filtered", "this--isn't", "isn't--stupid", "text chunk that wasn't filtered"]
     # you should see the `Content`` repeated in the output since the return value of the `text-chunker` is hardcoded and because text-chunker is
     # invoked twice, once after `filter-for-profanity` and once after `object-detector`.

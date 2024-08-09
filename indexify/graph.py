@@ -2,7 +2,7 @@ from indexify import Content, extractor
 from indexify.extractor import Extractor
 
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Self
 
 
 @extractor(description="id function")
@@ -28,7 +28,7 @@ class Graph:
 
         self._start_node = None
 
-    def node(self, extractor: Extractor, params: Any = None) -> None:
+    def node(self, extractor: Extractor, params: Any = None) -> Self:
         name = extractor._extractor_name
         if name in self.nodes:
             raise Exception(f"Cannot insert node, node with name: `{name}` already exists")
@@ -39,13 +39,17 @@ class Graph:
         # assign each node a rank of 1 to init the graph
         self._topo_counter[name] = 1
 
-    def edge(self, from_node: extractor, to_node: extractor, prefilter_predicates: Optional[str] = None) -> None:
+        return self
+
+    def edge(self, from_node: extractor, to_node: extractor, prefilter_predicates: Optional[str] = None) -> Self:
         from_node_name = from_node._extractor_name
         to_node_name = to_node._extractor_name
 
         self.edges[from_node_name].append((to_node_name, prefilter_predicates))
 
         self._topo_counter[to_node_name] += 1
+
+        return self
 
     def _assign_start_node(self):
         # this method should be called before a graph can be run
