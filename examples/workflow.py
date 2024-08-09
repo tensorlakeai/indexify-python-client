@@ -51,19 +51,17 @@ def chunk_embeddings(content: Content) -> List[Feature]:
 if __name__ == "__main__":
     g = Graph("FilterGraph")
 
-    (g.node(pdf_extraction)
-     .node(filter_for_profanity, params={"words": ["fuck"]})
-     .node(object_detector)
-     .node(text_chunks, params={"chunk_size": 500})
-     .node(chunk_embeddings)
-    )
+    # filter_for_profanity.params = {"words": ["fuck"]}
+    # text_chunks.params = {"chunk_size": 500}
+
+    filter_for_profanity_params = {"words": ["fuck"]}
+    text_chunks_params = {"chunk_size": 500}
 
     (
-        g.edge(pdf_extraction, filter_for_profanity)
-        .edge(pdf_extraction, object_detector)
-        .edge(filter_for_profanity, text_chunks)
-        .edge(object_detector, text_chunks, prefilter_predicates="a=one and c=three")
-        .edge(text_chunks, chunk_embeddings)
+        g.steps(pdf_extraction, [filter_for_profanity, object_detector], to_params=[filter_for_profanity_params])
+        .step(filter_for_profanity, text_chunks, to_params=text_chunks_params)
+        .step(object_detector, text_chunks, prefilter_predicates="a=one and c=three")
+        .step(text_chunks, chunk_embeddings)
     )
 
     # Use this edge replacement in the comment as an example of how to use this edge without a predicated is commented out below.
