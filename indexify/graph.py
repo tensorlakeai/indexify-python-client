@@ -38,7 +38,7 @@ class Graph:
             return
 
         self.nodes[name] = extractor
-        self.params[name] = params
+        self.params[name] = extractor.__dict__.get('_params', None)
 
         # assign each node a rank of 1 to init the graph
         self._topo_counter[name] = 1
@@ -48,13 +48,11 @@ class Graph:
     def step(self,
              from_node: extractor,
              to_node: extractor,
-             from_params: Any = None,
-             to_params: Any = None,
              prefilter_predicates: Optional[str] = None
     ) -> Self:
 
-        self._node(from_node, from_params)
-        self._node(to_node, to_params)
+        self._node(from_node)
+        self._node(to_node)
 
         from_node_name = from_node._extractor_name
         to_node_name = to_node._extractor_name
@@ -69,17 +67,9 @@ class Graph:
     Connect nodes as a fan out from one `from_node` to multiple `to_nodes` and respective `prefilter_predicates`.
     Note: The user has to match the sizes of the lists to make sure they line up otherwise a None is used as a default.
     """
-    def steps(
-            self,
-            from_node: extractor,
-            to_nodes: List[extractor],
-            from_params: Any = None,
-            to_params: List[Any] = [],
-            prefilter_predicates: List[str] = []
-    ) -> Self:
-
-        for t_n, to_p, p in itertools.zip_longest(to_nodes, to_params, prefilter_predicates, fillvalue=None):
-            self.step(from_node=from_node, to_node=t_n, from_params=from_params, to_params=to_p, prefilter_predicates=p)
+    def steps(self, from_node: extractor, to_nodes: List[extractor], prefilter_predicates: List[str] = []) -> Self:
+        for t_n, p in itertools.zip_longest(to_nodes, prefilter_predicates, fillvalue=None):
+            self.step(from_node=from_node, to_node=t_n, prefilter_predicates=p)
 
         return self
 

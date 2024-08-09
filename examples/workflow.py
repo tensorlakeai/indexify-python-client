@@ -51,15 +51,12 @@ def chunk_embeddings(content: Content) -> List[Feature]:
 if __name__ == "__main__":
     g = Graph("FilterGraph")
 
-    # filter_for_profanity.params = {"words": ["fuck"]}
-    # text_chunks.params = {"chunk_size": 500}
-
-    filter_for_profanity_params = {"words": ["fuck"]}
-    text_chunks_params = {"chunk_size": 500}
+    filter_for_profanity._params = {"words": ["fuck"]}
+    text_chunks._params = {"chunk_size": 500}
 
     (
-        g.steps(pdf_extraction, [filter_for_profanity, object_detector], to_params=[filter_for_profanity_params])
-        .step(filter_for_profanity, text_chunks, to_params=text_chunks_params)
+        g.steps(pdf_extraction, [filter_for_profanity, object_detector])
+        .step(filter_for_profanity, text_chunks)
         .step(object_detector, text_chunks, prefilter_predicates="a=one and c=three")
         .step(text_chunks, chunk_embeddings)
     )
