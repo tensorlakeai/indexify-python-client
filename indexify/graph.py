@@ -38,7 +38,7 @@ class Graph:
             return
 
         self.nodes[name] = extractor
-        self.params[name] = extractor.__dict__.get('_params', None)
+        self.params[name] = extractor.__dict__.get('params', None)
 
         # assign each node a rank of 1 to init the graph
         self._topo_counter[name] = 1

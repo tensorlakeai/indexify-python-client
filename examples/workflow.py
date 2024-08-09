@@ -51,8 +51,8 @@ def chunk_embeddings(content: Content) -> List[Feature]:
 if __name__ == "__main__":
     g = Graph("FilterGraph")
 
-    filter_for_profanity._params = {"words": ["fuck"]}
-    text_chunks._params = {"chunk_size": 500}
+    filter_for_profanity.params = {"words": ["fuck"]}
+    text_chunks.params = {"chunk_size": 500}
 
     (
         g.steps(pdf_extraction, [filter_for_profanity, object_detector])
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     )
 
     # Use this edge replacement in the comment as an example of how to use this edge without a predicated is commented out below.
-    #g.edge(object_detector, text_chunks)
+    #g.step(object_detector, text_chunks)
     #expected output: ['this--is', 'is--stupid', "this--isn't", "isn't--stupid", 'detected--r12c201', 'detected--r1c1', 'detected--r12c201', 'detected--r1c1', 'detected--r12c201', 'detected--r1c1']
 
     # TODO read from the pdf file.
